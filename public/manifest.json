@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "description": "A simple Chrome extension with React.",
   "icons": {
-    "16": "logo192.png",
-    "48": "logo192.png",
-    "128": "logo192.png"
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   },
   "background": {
     "service_worker": "./static/js/background.js"
@@ -20,5 +20,11 @@
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": ["storage", "tabs"]
+  "permissions": ["storage", "activeTab"],
+  "web_accessible_resources": [
+    {
+      "resources": ["icon.png", "animationLoading.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

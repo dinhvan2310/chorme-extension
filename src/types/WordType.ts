@@ -9,6 +9,5 @@ export interface WordType {
 
     learned?: boolean;
     createdAt?: Timestamp;
-    audio?: string;
 }
 

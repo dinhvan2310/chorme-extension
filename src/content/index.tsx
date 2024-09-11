@@ -23,4 +23,12 @@ popup.render(<AppInject />);
 
 // funtions --------------------------------------------------------------------------------------------------------------
 
+// const bodyText = document.querySelector("body")?.innerHTML;
+// const key = "DESIGN";
+// const newBodyText = bodyText?.replace(
+//     new RegExp(key, "g"),
+//     `<span style="background-color: yellow">${key}</span>`
+// );
+// document.querySelector("body")!.innerHTML = newBodyText!;
+
 export {};

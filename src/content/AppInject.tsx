@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import RenderIf from "../components/RenderIf";
 import TranslateComponent from "../components/TranslatePopup/TranslateComponent";
+import { doc } from "firebase/firestore";
 
 interface AppInjectProps {
     style?: React.CSSProperties;
@@ -29,7 +30,7 @@ function AppInject(props: AppInjectProps) {
     const [top, setTop] = React.useState(0);
 
     useEffect(() => {
-        document.addEventListener("click", (e) => {
+        const handleDocumentMouseUp = (e: MouseEvent) => {
             if (
                 getSelectedText().length > 0 &&
                 showPopup === false &&
@@ -52,7 +53,39 @@ function AppInject(props: AppInjectProps) {
                 setShowPopup(false);
                 setShowTranslation(false);
             }
-        });
+        };
+
+        const handleDocumentDbClick = (e: MouseEvent) => {
+            if (
+                getSelectedText().length > 0 &&
+                showPopup === false &&
+                showTranslation === false &&
+                !document
+                    .getElementById("popupRoot")
+                    ?.contains(e.target as Node)
+            ) {
+                console.log(getSelectedText());
+
+                setLeft(calcLeftPosition(e.pageX));
+                setTop(e.pageY);
+                setShowPopup(true);
+                setShowTranslation(true);
+            } else if (
+                !document
+                    .getElementById("popupRoot")
+                    ?.contains(e.target as Node)
+            ) {
+                console.log("clicked outside");
+                setShowPopup(false);
+                setShowTranslation(false);
+            }
+        };
+
+        document.removeEventListener("mouseup", handleDocumentMouseUp);
+        document.removeEventListener("dblclick", handleDocumentDbClick);
+
+        document.addEventListener("mouseup", handleDocumentMouseUp);
+        document.addEventListener("dblclick", handleDocumentDbClick);
     }, []);
 
     return (
@@ -111,3 +144,9 @@ function AppInject(props: AppInjectProps) {
 }
 
 export default AppInject;
+function handleDocumentMouseUp(this: Document, ev: MouseEvent) {
+    throw new Error("Function not implemented.");
+}
+function handleDocumentDbClick(this: Document, ev: MouseEvent) {
+    throw new Error("Function not implemented.");
+}

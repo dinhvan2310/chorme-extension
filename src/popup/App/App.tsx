@@ -1,5 +1,10 @@
 // import { useEffect, useState } from "react";
 
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import PopupLayout from "../../components/Popup/PopupLayout";
+import PopupTranslate from "../../components/Popup/PopupTranslate/PopupTranslate";
+import PopupComponent from "../../components/Popup/PopupComponent";
+
 // function App() {
 //   const [isActivated, setIsActivated] = useState(false);
 
@@ -52,27 +57,32 @@
 
 // export default App;
 
-import { useEffect, useState } from "react";
-import MainLayout from "../../layouts/MainLayout";
-import SignUpLayout from "../../layouts/SignUpLayout";
-import { UserType } from "../../types/UserType";
-
 function App() {
-    const [user, setUser] = useState<UserType | null>(null);
-    useEffect(() => {
-        //  Set the theme
-        const theme = localStorage.getItem("theme");
-        if (theme) {
-            document.body.dataset.theme = theme;
-        } else {
-            localStorage.setItem("theme", "light");
-            document.body.dataset.theme = "light";
-        }
+    // const handleLogin = async () => {
+    //     // redirect new tab to login page
+    //     const url = "https://www.google.com";
+    //     // @ts-ignore
+    //     chrome.tabs.create({ url });
+    // };
 
-        //  Load the Google fonts
-    }, []);
+    const route = createMemoryRouter([
+        {
+            path: "/",
+            element: <PopupLayout />,
+            children: [
+                {
+                    path: "/translate",
+                    element: <PopupTranslate />,
+                },
+                {
+                    path: "/",
+                    element: <PopupComponent />,
+                },
+            ],
+        },
+    ]);
 
-    return <MainLayout />;
+    return <RouterProvider router={route} />;
 }
 
 export default App;

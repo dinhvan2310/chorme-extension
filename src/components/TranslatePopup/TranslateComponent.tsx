@@ -1,13 +1,18 @@
-import { Notepad, Setting2, Star1, VolumeHigh } from "iconsax-react";
+import { Translate, VolumeHigh } from "iconsax-react";
 import React, { useEffect } from "react";
-import { WordEntry } from "../../types/WordDefinitionFreeType";
-import TouchableOpacity from "../TouchableOpacity/TouchableOpacity";
 import UseAnimations from "react-useanimations";
+import TouchableOpacity from "../TouchableOpacity/TouchableOpacity";
 // EVERY ANIMATION NEEDS TO BE IMPORTED FIRST -> YOUR BUNDLE WILL INCLUDE ONLY WHAT IT NEEDS
 import loading2 from "react-useanimations/lib/loading2";
 import settings2 from "react-useanimations/lib/settings2";
 import star from "react-useanimations/lib/star";
-import { getWordDefinition } from "../../content/apis/dictionaryFree";
+
+import { WordType } from "../../types/WordType";
+import {
+    convertToWordType,
+    getWordDefinition,
+} from "../../content/apis/dictionaryFree";
+import { translateText } from "../../content/apis/bingTranslateApi/bingTranslate";
 
 interface TranslatePopupProps {
     textSelection: string;
@@ -16,14 +21,25 @@ interface TranslatePopupProps {
 function TranslatePopup(props: TranslatePopupProps) {
     const { textSelection } = props;
 
-    const [wordDefinition, setWordDefinition] = React.useState<WordEntry[]>([]);
+    const [wordTranslation, setWordTranslation] = React.useState<string>("");
+    const [wordDefinition, setWordDefinition] = React.useState<WordType[]>([]);
     const [isLoading, setIsLoading] = React.useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
-            const data = await getWordDefinition(textSelection);
-            setWordDefinition(data ?? []);
+            const data = await await convertToWordType(
+                (await getWordDefinition(textSelection)) ?? [],
+                5,
+                6
+            );
+            const translatedText = await translateText(
+                textSelection,
+                ["vi"],
+                "en"
+            );
+            setWordTranslation(translatedText);
+            setWordDefinition(data);
             setIsLoading(false);
         };
         fetchData();
@@ -70,9 +86,10 @@ function TranslatePopup(props: TranslatePopupProps) {
                     padding: "8px",
                     fontSize: "14px",
                     fontWeight: "500",
+                    maxWidth: "620px",
                 }}
             >
-                No definition found
+                {wordTranslation}
             </div>
         );
     }
@@ -89,7 +106,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                 backgroundColor: "#3a3b3c",
 
                 maxHeight: "240px",
-                maxWidth: "360px",
+                maxWidth: "620px",
                 minWidth: "240px",
             }}
         >
@@ -116,18 +133,11 @@ function TranslatePopup(props: TranslatePopupProps) {
                             marginRight: "8px",
                         }}
                         onPress={() => {
-                            const audio = new Audio(
-                                wordDefinition
-                                    .find((w: { phonetics: any[] }) =>
-                                        w.phonetics.find(
-                                            (p: { audio: any }) => p.audio
-                                        )
-                                    )
-                                    ?.phonetics.find(
-                                        (p: { audio: any }) => p.audio
-                                    )?.audio || ""
+                            const synth = window.speechSynthesis;
+                            const utterThis = new SpeechSynthesisUtterance(
+                                textSelection
                             );
-                            audio.play();
+                            synth.speak(utterThis);
                         }}
                     >
                         <VolumeHigh size="20" style={{}} />
@@ -140,17 +150,6 @@ function TranslatePopup(props: TranslatePopupProps) {
                         }}
                     >
                         {textSelection}
-                    </div>
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            opacity: 0.8,
-                            color: "#fff",
-                            marginLeft: "12px",
-                        }}
-                    >
-                        /{wordDefinition[0].phonetic ?? ""}/
                     </div>
                 </div>
                 <div
@@ -212,56 +211,76 @@ function TranslatePopup(props: TranslatePopupProps) {
                     textAlign: "left",
                 }}
             >
-                {wordDefinition?.map((word, index) => {
-                    return (
-                        <div key={index}>
-                            {word.meanings.map((meaning, index) => {
-                                return (
-                                    <div key={index}>
-                                        <div
-                                            style={{
-                                                fontSize: "14px",
-                                                fontWeight: "600",
-                                                display: "flex",
-                                                flexDirection: "row",
-                                                alignItems: "center",
-                                                opacity: 0.8,
-                                                marginTop:
-                                                    index === 0 ? "0" : "8px",
-                                            }}
-                                        >
-                                            <Notepad
-                                                size="14"
-                                                style={{
-                                                    marginRight: "8px",
-                                                }}
-                                            />
-                                            {meaning.partOfSpeech}
-                                        </div>
-                                        {meaning.definitions.map(
-                                            (definition, index) => {
-                                                if (index > 0) return null;
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        style={{
-                                                            fontSize: "14px",
-                                                            marginBottom: "4px",
-                                                            fontWeight: "500",
-                                                            marginTop: "4px",
-                                                        }}
-                                                    >
-                                                        {definition.definition}
-                                                    </div>
-                                                );
-                                            }
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    );
-                })}
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        marginTop: "8px",
+                        marginBottom: "14px",
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "flex-start",
+                        }}
+                    >
+                        <Translate size="16" style={{ marginRight: "16px" }} />
+                        {wordTranslation}
+                    </div>
+                </div>
+                <div
+                    style={{
+                        opacity: 0.6,
+                        fontSize: "14px",
+                    }}
+                >
+                    Meaning:
+                </div>
+                <div>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            color: "#fff",
+                            whiteSpace: "pre-line",
+                        }}
+                    >
+                        {wordDefinition[0].meaning}
+                    </div>
+                </div>
+                <div
+                    style={{
+                        marginTop: "8px",
+                        width: "100%",
+                    }}
+                >
+                    <div
+                        style={{
+                            opacity: 0.6,
+                            fontSize: "14px",
+                        }}
+                    >
+                        Example:{" "}
+                    </div>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            color: "#fff",
+                            whiteSpace: "pre-line",
+                        }}
+                    >
+                        {wordDefinition[0].contexts.join("\n")}
+                    </div>
+                </div>
             </div>
         </div>
     );

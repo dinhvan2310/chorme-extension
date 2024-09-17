@@ -1,9 +1,12 @@
 // import { useEffect, useState } from "react";
 
+import { useEffect } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import PopupLayout from "../../components/Popup/PopupLayout";
-import PopupTranslate from "../../components/Popup/PopupTranslate/PopupTranslate";
+import WebFont from "webfontloader";
 import PopupComponent from "../../components/Popup/PopupComponent";
+import PopupLayout from "../../components/Popup/PopupLayout";
+import LoginPage from "../../components/Popup/PopupSignin/LoginPage";
+import PopupTranslate from "../../components/Popup/PopupTranslate/PopupTranslate";
 
 // function App() {
 //   const [isActivated, setIsActivated] = useState(false);
@@ -65,6 +68,14 @@ function App() {
     //     chrome.tabs.create({ url });
     // };
 
+    // useEffect(() => {
+    //     WebFont.load({
+    //         google: {
+    //             families: ["Poppins:400,500,600,700,800"],
+    //         },
+    //     });
+    // });
+
     const route = createMemoryRouter([
         {
             path: "/",
@@ -79,6 +90,10 @@ function App() {
                     element: <PopupComponent />,
                 },
             ],
+        },
+        {
+            path: "/signin",
+            element: <LoginPage />,
         },
     ]);
 

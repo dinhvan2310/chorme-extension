@@ -5,7 +5,6 @@ function PopupLayout() {
     return (
         <div
             style={{
-                width: 384,
                 height: 480,
                 overflowY: "auto",
                 overflowX: "hidden",
@@ -16,6 +15,8 @@ function PopupLayout() {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
+
+                fontFamily: "Popins, sans-serif",
             }}
         >
             {outlet}

@@ -58,7 +58,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                     padding: "8px",
                     fontSize: "14px",
                     fontWeight: "500",
-                    backgroundColor: "transparent",
+                    backgroundColor: "#FFF",
                 }}
             >
                 <UseAnimations
@@ -86,7 +86,9 @@ function TranslatePopup(props: TranslatePopupProps) {
                     padding: "8px",
                     fontSize: "14px",
                     fontWeight: "500",
-                    maxWidth: "620px",
+                    minWidth: "240px",
+                    maxWidth: "520px",
+                    fontFamily: "Poppins, sans-serif",
                 }}
             >
                 {wordTranslation}
@@ -101,13 +103,15 @@ function TranslatePopup(props: TranslatePopupProps) {
                 flexDirection: "column",
                 borderRadius: "8px",
                 boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-                color: "#fff",
+                color: "#000",
                 alignItems: "flex-start",
-                backgroundColor: "#3a3b3c",
+                backgroundColor: "#FFF",
 
                 maxHeight: "240px",
-                maxWidth: "620px",
                 minWidth: "240px",
+
+                maxWidth: "520px",
+                fontFamily: "Poppins, sans-serif",
             }}
         >
             <div
@@ -147,6 +151,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                         style={{
                             fontSize: "16px",
                             fontWeight: "500",
+                            color: "#000",
                         }}
                     >
                         {textSelection}
@@ -167,7 +172,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                         <UseAnimations
                             animation={star}
                             size={24}
-                            strokeColor="#fff"
+                            strokeColor="#000"
                             style={{ margin: "auto" }}
                         />
                     </TouchableOpacity>
@@ -180,7 +185,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                         <UseAnimations
                             animation={settings2}
                             size={24}
-                            strokeColor="#fff"
+                            strokeColor="#000"
                             style={{ margin: "auto" }}
                         />
                     </TouchableOpacity>
@@ -191,7 +196,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                 style={{
                     width: "100%",
                     height: "1px",
-                    backgroundColor: "#fff",
+                    backgroundColor: "#666666",
                     margin: "0 4px",
                     opacity: 0.4,
                 }}
@@ -202,9 +207,8 @@ function TranslatePopup(props: TranslatePopupProps) {
                     overflowY: "auto",
                     maxHeight: "330px",
                     scrollbarWidth: "thin",
-                    scrollbarColor: "#fff #3a3b3c",
+                    scrollbarColor: "#666666 #F9f9f9",
                     padding: "8px",
-                    width: "100%",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
@@ -230,6 +234,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                             flexDirection: "row",
                             alignItems: "center",
                             justifyContent: "flex-start",
+                            color: "#000",
                         }}
                     >
                         <Translate size="16" style={{ marginRight: "16px" }} />
@@ -238,8 +243,9 @@ function TranslatePopup(props: TranslatePopupProps) {
                 </div>
                 <div
                     style={{
-                        opacity: 0.6,
                         fontSize: "14px",
+                        color: "#000",
+                        fontWeight: "500",
                     }}
                 >
                     Meaning:
@@ -249,7 +255,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                         style={{
                             fontSize: "14px",
                             fontWeight: "500",
-                            color: "#fff",
+                            color: "#666",
                             whiteSpace: "pre-line",
                         }}
                     >
@@ -264,8 +270,9 @@ function TranslatePopup(props: TranslatePopupProps) {
                 >
                     <div
                         style={{
-                            opacity: 0.6,
                             fontSize: "14px",
+                            color: "#000",
+                            fontWeight: "500",
                         }}
                     >
                         Example:{" "}
@@ -274,11 +281,13 @@ function TranslatePopup(props: TranslatePopupProps) {
                         style={{
                             fontSize: "14px",
                             fontWeight: "500",
-                            color: "#fff",
+                            color: "#666",
                             whiteSpace: "pre-line",
                         }}
                     >
-                        {wordDefinition[0].contexts.join("\n")}
+                        {wordDefinition[0].contexts
+                            .map((context) => `• ${context}`)
+                            .join("\n")}
                     </div>
                 </div>
             </div>

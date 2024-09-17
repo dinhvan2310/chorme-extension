@@ -46,7 +46,7 @@ function PopupTranslate() {
     return (
         <div
             style={{
-                width: "100%",
+                width: "460px",
                 backgroundColor: "#f9fafb",
                 height: "100%",
             }}
@@ -78,7 +78,7 @@ function PopupTranslate() {
                     <span
                         style={{
                             fontSize: 16,
-                            fontWeight: 500,
+                            fontWeight: 600,
                             color: "#000",
                             marginLeft: 16,
                         }}
@@ -168,7 +168,7 @@ function PopupTranslate() {
                         <div
                             style={{
                                 fontSize: "14px",
-                                fontWeight: "500",
+                                fontWeight: "600",
                                 color: "#333",
                             }}
                         >
@@ -214,7 +214,7 @@ function PopupTranslate() {
                         <div
                             style={{
                                 fontSize: "14px",
-                                fontWeight: "500",
+                                fontWeight: "600",
                                 color: "#333",
                             }}
                         >
@@ -261,7 +261,7 @@ function PopupTranslate() {
                         <div
                             style={{
                                 fontSize: "14px",
-                                fontWeight: "500",
+                                fontWeight: "600",
                                 color: "#333",
                             }}
                         >

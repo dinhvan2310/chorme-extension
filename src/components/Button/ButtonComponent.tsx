@@ -28,7 +28,7 @@ function ButtonComponent(props: ButtonComponentProps) {
                     flexDirection: "column",
                     alignItems: "center",
                     cursor: "pointer",
-                    padding: "24px",
+                    padding: "42px",
                     borderRadius: 8,
                     backgroundColor: hover
                         ? "#F8F8F8"

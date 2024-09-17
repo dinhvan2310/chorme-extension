@@ -1,15 +1,23 @@
-import { Logout, Setting2, Translate } from "iconsax-react";
+import { Logout, Notepad2, Setting2, Translate } from "iconsax-react";
 import ButtonComponent from "../Button/ButtonComponent";
 import TouchableOpacity from "../TouchableOpacity/TouchableOpacity";
 import { useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { AuthContext } from "../../context/AuthProvider";
+import { User } from "firebase/auth";
 
 function PopupComponent() {
     const navigate = useNavigate();
+    const context = useContext(AuthContext);
+    if (!context) {
+        return null; // or handle the null case appropriately
+    }
+    const { user, signOut } = context;
 
     return (
         <div
             style={{
-                width: 384,
+                width: "360px",
                 backgroundColor: "#f9fafb",
                 height: "100%",
                 display: "flex",
@@ -67,15 +75,35 @@ function PopupComponent() {
                             overflow: "hidden",
                         }}
                     >
-                        <img
-                            style={{
-                                objectFit: "cover",
-                                width: "100%",
-                                height: "100%",
-                            }}
-                            src="https://firebasestorage.googleapis.com/v0/b/vocabulary-notebook-989d7.appspot.com/o/images%2F1725654565743.jpg?alt=media&token=aa2bf9e8-c8e0-4eb7-89a1-17865a1c2caa"
-                            alt="profile"
-                        />
+                        {user ? (
+                            <img
+                                src={user.photoURL}
+                                alt={"user"}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                }}
+                            />
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    navigate("/signin");
+                                }}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    backgroundColor: "#f9fafb",
+                                    border: "none",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Sign In
+                            </button>
+                        )}
                     </div>
                 </header>
                 <div>
@@ -98,7 +126,7 @@ function PopupComponent() {
                         >
                             <ButtonComponent
                                 text="Translate"
-                                icon={<Translate size={20} color="#333" />}
+                                icon={<Translate size={26} color="#333" />}
                                 onClick={() => {
                                     navigate("/translate");
                                 }}
@@ -106,8 +134,12 @@ function PopupComponent() {
                             />
                             <ButtonComponent
                                 text="Notebook"
-                                icon={<Translate size={20} color="#333" />}
-                                onClick={() => console.log("Hamberger Menu")}
+                                icon={<Notepad2 size={26} color="#333" />}
+                                onClick={() => {
+                                    chrome.tabs.create({
+                                        url: "https://vocab-notebook-reactjs.onrender.com/",
+                                    });
+                                }}
                                 style={{ width: "100%" }}
                             />
                         </div>
@@ -119,13 +151,13 @@ function PopupComponent() {
                         >
                             <ButtonComponent
                                 text="Translate"
-                                icon={<Translate size={20} color="#333" />}
+                                icon={<Translate size={26} color="#333" />}
                                 onClick={() => console.log("Translate")}
                                 style={{ width: "100%", marginRight: 8 }}
                             />
                             <ButtonComponent
                                 text="Settings"
-                                icon={<Setting2 size={20} color="#333" />}
+                                icon={<Setting2 size={26} color="#333" />}
                                 onClick={() => console.log("Hamberger Menu")}
                                 style={{ width: "100%" }}
                             />

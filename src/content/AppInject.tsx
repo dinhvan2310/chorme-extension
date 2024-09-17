@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from "react";
 import RenderIf from "../components/RenderIf";
 import TranslateComponent from "../components/TranslatePopup/TranslateComponent";
 import { doc } from "firebase/firestore";
+import WebFont from "webfontloader";
 
 interface AppInjectProps {
     style?: React.CSSProperties;
@@ -30,6 +31,11 @@ function AppInject(props: AppInjectProps) {
     const [top, setTop] = React.useState(0);
 
     useEffect(() => {
+        WebFont.load({
+            google: {
+                families: ["Poppins:400,500,600,700,800"],
+            },
+        });
         const handleDocumentMouseUp = (e: MouseEvent) => {
             if (
                 getSelectedText().length > 0 &&

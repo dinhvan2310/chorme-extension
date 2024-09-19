@@ -1,17 +1,18 @@
 import { ArrowLeft2, VolumeHigh } from "iconsax-react";
-import TouchableOpacity from "../../TouchableOpacity/TouchableOpacity";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TextareaAutosize from "react-textarea-autosize";
-import { useEffect, useState } from "react";
-import useDebounce from "../../../hooks/useDebounce";
-import { WordType } from "../../../types/WordType";
 
 import React from "react";
+import useDebounce from "../../hooks/useDebounce";
+import { WordType } from "../../types/WordType";
+import { AuthContext } from "../../context/AuthProvider";
 import {
     convertToWordType,
     getWordDefinition,
-} from "../../../content/apis/dictionaryFree";
-import { translateText } from "../../../content/apis/bingTranslateApi/bingTranslate";
+} from "../../content/apis/dictionaryFree";
+import { translateText } from "../../content/apis/bingTranslateApi/bingTranslate";
+import TouchableOpacity from "../../components/TouchableOpacity/TouchableOpacity";
 
 function PopupTranslate() {
     const navigate = useNavigate();
@@ -22,6 +23,9 @@ function PopupTranslate() {
     const [wordTranslation, setWordTranslation] = React.useState<string>("");
     const [wordDefinition, setWordDefinition] = React.useState<WordType[]>([]);
     const [isLoading, setIsLoading] = React.useState(false);
+    const context = useContext(AuthContext);
+
+    const { user, signOut } = context;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -102,7 +106,7 @@ function PopupTranslate() {
                             width: "100%",
                             height: "100%",
                         }}
-                        src="https://firebasestorage.googleapis.com/v0/b/vocabulary-notebook-989d7.appspot.com/o/images%2F1725654565743.jpg?alt=media&token=aa2bf9e8-c8e0-4eb7-89a1-17865a1c2caa"
+                        src={user?.photoURL ?? ""}
                         alt="translate"
                     />
                 </div>

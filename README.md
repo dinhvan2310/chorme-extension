@@ -1,46 +1,55 @@
-# Getting Started with Create React App
+<!-- # Một công cụ hiệu quả giúp hỗ trợ học từ vựng tiếng anh trên trình duyệt -->
+# An effective tool to support learning English vocabulary on the web browser
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Project Description
+This project is a web extension that helps users learn English vocabulary while surfing the web. The extension will automatically look up the meaning of the selected word and display it in a pop-up immediately when the user double-clicks on the word. The extension also provides a notebook feature that allows users to save words and share them with others.
 
-## Available Scripts
+## Features
+### 1. Look up the meaning of the selected word on the web page
 
-In the project directory, you can run:
+> Translate immediately when the user double-clicks on the word.
 
-### `yarn start`
+<img src="image.png" width="400">
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+> Translate word in the pop-up.
 
-### `yarn test`
+<img src="image-3.png" width="400">
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. Save words to the notebook (coming soon)
+> Notebook is a another project that is being developed. It will be integrated into this project in the future. 
 
-### `yarn build`
+> https://vocabulary-notebook-989d7.web.app/
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+<img src="image-1.png" width="600">
+<img src="image-2.png" width="600">
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 3. Reminder feature (coming soon)
+This feature will help users remember the words they have saved in the notebook. 
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+> The reminder will highlight the saved words in the web page if it appears in the content of the page.
 
-### `yarn eject`
+<img src="image-4.png" width="400">
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+> The reminder will also display the saved words in the pop-up automatically every certain period of time.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+![alt text](angghi2024-09-20015144-ezgif.com-video-to-gif-converter.gif) 
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Installation
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+1. Clone the repository
+```bash 
+git clone https://github.com/dinhvan2310/chorme-extension
+```
 
-## Learn More
+2. Open the Extension Management page by navigating to `chrome://extensions`.
+   - The Extension Management page can also be opened by clicking on the Chrome menu, hovering over `More Tools` then selecting `Extensions`.
+   - Enable Developer Mode by clicking the toggle switch next to Developer mode.
+   - Click the `Load unpacked` button and select the extension directory.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. The extension has been successfully installed. You can use it by double-clicking on any word on the web page.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Tools and Technologies
+- HTML, CSS, JavaScript, TypeScript, Tailwind CSS, React
+- Chrome Extension API, Bing Translate API, Free Dictionary API
+- Firebase (Firestore, Firebase Hosting, Firebase Authentication, Storage)

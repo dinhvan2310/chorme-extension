@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect } from "react";
-import RenderIf from "../components/RenderIf";
-import TranslateComponent from "../components/TranslatePopup/TranslateComponent";
-import { doc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import WebFont from "webfontloader";
+import RenderIf from "./components/RenderIf";
+import TranslateComponent from "./components/TranslatePopup/TranslateComponent";
 
 interface AppInjectProps {
     style?: React.CSSProperties;
@@ -150,9 +149,3 @@ function AppInject(props: AppInjectProps) {
 }
 
 export default AppInject;
-function handleDocumentMouseUp(this: Document, ev: MouseEvent) {
-    throw new Error("Function not implemented.");
-}
-function handleDocumentDbClick(this: Document, ev: MouseEvent) {
-    throw new Error("Function not implemented.");
-}

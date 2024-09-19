@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import WebFont from "webfontloader";
-import PopupComponent from "../../components/Popup/PopupComponent";
-import PopupLayout from "../../components/Popup/PopupLayout";
 import LoginPage from "../../components/Popup/PopupSignin/LoginPage";
-import PopupTranslate from "../../components/Popup/PopupTranslate/PopupTranslate";
+import Settings from "../layout/Settings";
+import PopupComponent from "../layout/PopupComponent";
+import PopupTranslate from "../layout/PopupTranslate";
+import PopupLayout from "../layout/PopupLayout";
 
 // function App() {
 //   const [isActivated, setIsActivated] = useState(false);
@@ -68,13 +68,14 @@ function App() {
     //     chrome.tabs.create({ url });
     // };
 
-    // useEffect(() => {
-    //     WebFont.load({
-    //         google: {
-    //             families: ["Poppins:400,500,600,700,800"],
-    //         },
-    //     });
-    // });
+    useEffect(() => {
+        // WebFont.load({
+        //     google: {
+        //         families: ["Poppins:400,500,600,700,800"],
+        //     },
+        // });
+        chrome.runtime.sendMessage({ type: "POPUP_MOUNTED" });
+    }, []);
 
     const route = createMemoryRouter([
         {
@@ -88,6 +89,10 @@ function App() {
                 {
                     path: "/",
                     element: <PopupComponent />,
+                },
+                {
+                    path: "/settings",
+                    element: <Settings />,
                 },
             ],
         },

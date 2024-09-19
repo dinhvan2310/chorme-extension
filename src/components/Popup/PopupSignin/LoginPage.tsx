@@ -23,7 +23,7 @@ function LoginPage() {
         try {
             // Configure the action code settings
             const actionCodeSettings = {
-                url: `extension://ajgkconnckilakdnailkmmofclfkdnie/index.html`,
+                url: `https://vocabulary-notebook-989d7.web.app`,
                 handleCodeInApp: true,
             };
 

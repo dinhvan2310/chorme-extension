@@ -1,10 +1,9 @@
 import { Logout, Notepad2, Setting2, Translate } from "iconsax-react";
-import ButtonComponent from "../Button/ButtonComponent";
-import TouchableOpacity from "../TouchableOpacity/TouchableOpacity";
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
-import { User } from "firebase/auth";
+import TouchableOpacity from "../../components/TouchableOpacity/TouchableOpacity";
+import ButtonComponent from "../../components/Button/ButtonComponent";
 
 function PopupComponent() {
     const navigate = useNavigate();
@@ -137,7 +136,7 @@ function PopupComponent() {
                                 icon={<Notepad2 size={26} color="#333" />}
                                 onClick={() => {
                                     chrome.tabs.create({
-                                        url: "https://vocab-notebook-reactjs.onrender.com/",
+                                        url: "https://vocabulary-notebook-989d7.web.app",
                                     });
                                 }}
                                 style={{ width: "100%" }}
@@ -152,28 +151,53 @@ function PopupComponent() {
                             <ButtonComponent
                                 text="Translate"
                                 icon={<Translate size={26} color="#333" />}
-                                onClick={() => console.log("Translate")}
+                                onClick={() => {
+                                    chrome.tabs.query(
+                                        { active: true, currentWindow: true },
+                                        (tabs) => {
+                                            chrome.tabs.sendMessage(
+                                                tabs[0].id || 0,
+                                                {
+                                                    type: "REMEMBER",
+                                                    word: "Translate",
+                                                    definition:
+                                                        "To convert text from one language to another",
+                                                },
+                                                (response) => {
+                                                    console.log(
+                                                        "response",
+                                                        response
+                                                    );
+                                                }
+                                            );
+                                        }
+                                    );
+                                }}
                                 style={{ width: "100%", marginRight: 8 }}
                             />
                             <ButtonComponent
                                 text="Settings"
                                 icon={<Setting2 size={26} color="#333" />}
-                                onClick={() => console.log("Hamberger Menu")}
+                                onClick={() => navigate("/settings")}
                                 style={{ width: "100%" }}
                             />
                         </div>
                     </div>
                     <div>
-                        <ButtonComponent
-                            text="Logout"
-                            iconPosition="left"
-                            onClick={() => console.log("Logout")}
-                            style={{
-                                width: "100%",
-                                height: 54,
-                            }}
-                            icon={<Logout size={20} color="#333" />}
-                        />
+                        {user && (
+                            <ButtonComponent
+                                text="Logout"
+                                iconPosition="left"
+                                onClick={() => {
+                                    signOut();
+                                }}
+                                style={{
+                                    width: "100%",
+                                    height: 54,
+                                }}
+                                icon={<Logout size={20} color="#333" />}
+                            />
+                        )}
                     </div>
                 </div>
             </div>

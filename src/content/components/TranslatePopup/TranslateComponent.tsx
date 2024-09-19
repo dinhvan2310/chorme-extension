@@ -1,18 +1,18 @@
 import { Translate, VolumeHigh } from "iconsax-react";
 import React, { useEffect } from "react";
 import UseAnimations from "react-useanimations";
-import TouchableOpacity from "../TouchableOpacity/TouchableOpacity";
+import TouchableOpacity from "../../../components/TouchableOpacity/TouchableOpacity";
 // EVERY ANIMATION NEEDS TO BE IMPORTED FIRST -> YOUR BUNDLE WILL INCLUDE ONLY WHAT IT NEEDS
 import loading2 from "react-useanimations/lib/loading2";
 import settings2 from "react-useanimations/lib/settings2";
 import star from "react-useanimations/lib/star";
 
-import { WordType } from "../../types/WordType";
+import { WordType } from "../../../types/WordType";
 import {
     convertToWordType,
     getWordDefinition,
-} from "../../content/apis/dictionaryFree";
-import { translateText } from "../../content/apis/bingTranslateApi/bingTranslate";
+} from "../../apis/dictionaryFree";
+import { translateText } from "../../apis/bingTranslateApi/bingTranslate";
 
 interface TranslatePopupProps {
     textSelection: string;

@@ -45,7 +45,7 @@ git clone https://github.com/dinhvan2310/chorme-extension
 2. Open the Extension Management page by navigating to `chrome://extensions`.
    - The Extension Management page can also be opened by clicking on the Chrome menu, hovering over `More Tools` then selecting `Extensions`.
    - Enable Developer Mode by clicking the toggle switch next to Developer mode.
-   - Click the `Load unpacked` button and select the folder dist in extension directory
+   - Click the `Load unpacked` button and select the folder **public** in extension directory
 
 3. The extension has been successfully installed. You can use it by double-clicking on any word or  on the web page.
 

@@ -1,44 +1,77 @@
-
 // background.js
-chrome.runtime.onInstalled.addListener(async() => {
-    
-    
-})
 
+import { getSettings } from "../apis/settings/settings";
+import { getWordNotLearned } from "../firebase/wordAPI";
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "SET_EMAIL_FOR_SIGN_IN") {
-        chrome.storage.local.set({ emailForSignIn: message.email });
-        chrome.storage.local.set({ tabext: sender.id });
-        console.log("sender.tab", sender);
-        console.log("SET_EMAIL_FOR_SIGN_IN", message.email);
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    // const uid = await chrome.storage.local.get('userId')
+    if (changeInfo.url) {
+        const extensionOrigin = "https://vocabulary-notebook-989d7.web.app";
+
+        console.log(changeInfo.url, extensionOrigin);
+        if (
+            changeInfo.url === extensionOrigin ||
+            changeInfo.url === `${extensionOrigin}/`
+        ) {
+            console.log("changeInfo.url === extensionOrigin");
+            console.log("tabId", tabId);
+            chrome.scripting
+                .executeScript({
+                    target: { tabId: tabId },
+                    func: () => {
+                        const text = document
+                            .querySelector("#userId")
+                            ?.getAttribute("data-userId");
+                        console.log("text", text);
+                        if (text) {
+                            chrome.storage.local.set({ userId: text });
+                        } else {
+                            chrome.storage.local.remove("userId");
+                        }
+                    },
+                })
+                .then(() => {
+                    console.log("Script executed");
+                })
+                .catch((err) => {
+                    console.log("Script failed to execute", err);
+                });
+        }
     }
 });
 
-chrome.tabs.onUpdated.addListener(async(tabId, changeInfo, tab) => {
-    if (changeInfo.url) {
-        const emailLink = changeInfo.url;
-        const urlOrigin = new URL(emailLink).origin;
-        const extensionOrigin = `https://vocabulary-notebook-989d7.firebaseapp.com`;
+const main = async () => {
+    const wordNotLearned = await getWordNotLearned();
+    console.log("wordNotLearned", wordNotLearned);
+    chrome.storage.local.set({ wordNotLearned });
 
-        console.log("urlOrigin", urlOrigin);
+    let settings = await getSettings();
 
-        if (urlOrigin === extensionOrigin) {
-            const email = (await chrome.storage.local.get("emailForSignIn")).emailForSignIn;
-            const tabext = (await chrome.storage.local.get("tabext")).tabext;
-            console.log("tabext", tabext);
-            
-            chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-                if (message.type === "POPUP_MOUNTED") {
-                    chrome.runtime.sendMessage( {
-                        type: "emailLink",
-                        emailLink,
-                        email,
-                    });
-                }
-            })}
+
+    chrome.storage.local.onChanged.addListener(
+        (changes: { [key: string]: chrome.storage.StorageChange }) => {
+            settings = changes.settings.newValue;
         }
-});
+    );
 
+    chrome.commands.onCommand.addListener((command) => {
+        if (command === "openRemindWord") {
+            const word =
+            wordNotLearned[Math.floor(Math.random() * wordNotLearned.length)];
+        wordNotLearned.splice(wordNotLearned.indexOf(word), 1);
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.tabs.sendMessage(tabs[0].id || 0, {
+                type: "REMEMBER",
+                word: word.name,
+                definition: word.meaning,
+                wordId: word.wordId,
+                learned: word.learned,
+            });
+        });
+        }
+    })
+};
 
-export { };
+main();
+
+export {};

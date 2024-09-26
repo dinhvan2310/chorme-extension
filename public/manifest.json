@@ -20,22 +20,31 @@
     "action": {
         "default_popup": "index.html"
     },
-    "permissions": ["storage", "activeTab", "identity", "offscreen"],
+    "permissions": [
+        "storage",
+        "activeTab",
+        "identity",
+        "offscreen",
+        "tabs",
+        "scripting"
+    ],
     "web_accessible_resources": [
         {
             "resources": ["icon.png", "animationLoading.json"],
             "matches": ["<all_urls>"]
         }
     ],
-    "host_permissions": ["https://*.firebaseapp.com/*"],
-    "oauth2": {
-        "client_id": "864924332644-d03m197kfk0t9q2knq7fddkj4lu1552b.apps.googleusercontent.com",
-        "scopes": [
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile"
-        ]
-    },
+    "host_permissions": [
+        "https://*.firebaseapp.com/*",
+        "https://vocabulary-notebook-989d7.web.app/*"
+    ],
     "content_security_policy": {
         "sandbox": "sandbox allow-scripts; script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://securetoken.googleapis.com https://apis.google.com"
+    },
+    "commands": {
+        "openRemindWord": {
+            "suggested_key": "Alt+Shift+D",
+            "description": "Open remind word"
+        }
     }
 }

@@ -1,56 +1,246 @@
-import { ArrowLeft2, VolumeHigh } from "iconsax-react";
+import {
+    ArrowLeft2,
+    Notepad2,
+    People,
+    Translate,
+    VolumeHigh,
+} from "iconsax-react";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TextareaAutosize from "react-textarea-autosize";
 
+import { Tabs, Tooltip } from "antd";
 import React from "react";
-import useDebounce from "../../hooks/useDebounce";
-import { WordType } from "../../types/WordType";
-import { AuthContext } from "../../context/AuthProvider";
-import {
-    convertToWordType,
-    getWordDefinition,
-} from "../../content/apis/dictionaryFree";
-import { translateText } from "../../content/apis/bingTranslateApi/bingTranslate";
+import { translateText } from "../../apis/bingTranslateApi/bingTranslate";
 import TouchableOpacity from "../../components/TouchableOpacity/TouchableOpacity";
+import { AuthContext } from "../../context/AuthProvider";
+import { SettingsContext } from "../../context/SettingsContext";
+import { suggestContext, suggestDefinition } from "../../firebase/suggestAPI";
+import useDebounce from "../../hooks/useDebounce";
 
 function PopupTranslate() {
     const navigate = useNavigate();
+    const settingsData = useContext(SettingsContext);
 
     const [search, setSearch] = useState("");
     const searchDebounce = useDebounce(search, 500);
 
-    const [wordTranslation, setWordTranslation] = React.useState<string>("");
-    const [wordDefinition, setWordDefinition] = React.useState<WordType[]>([]);
     const [isLoading, setIsLoading] = React.useState(false);
     const context = useContext(AuthContext);
+
+    const [wordDefinitionByDictionary, setWordDefinitionByDictionary] =
+        React.useState<string[]>([]);
+    const [wordDefinitionByCommunity, setWordDefinitionByCommunity] =
+        React.useState<string[]>([]);
+    const [wordDefinitionByBingTranslate, setWordDefinitionByBingTranslate] =
+        React.useState<string>();
+    const [wordContexts, setWordContexts] = React.useState<string[]>([]);
 
     const { user, signOut } = context;
 
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
-            const data = await await convertToWordType(
-                (await getWordDefinition(searchDebounce)) ?? [],
-                5,
-                6
+            const dictionary = await suggestDefinition(
+                searchDebounce,
+                "",
+                "dictionary"
             );
             const translatedText = await translateText(
                 searchDebounce,
-                ["vi"],
-                "en"
+                [settingsData?.langTo ?? "vi"],
+                settingsData?.langFrom ?? "en"
             );
-            setWordTranslation(translatedText);
-            setWordDefinition(data);
+            const community = await suggestDefinition(
+                searchDebounce,
+                "",
+                "community"
+            );
+            const wordContexts = await suggestContext(
+                searchDebounce,
+                "",
+                [""],
+                -1
+            );
+            setWordDefinitionByDictionary(dictionary);
+            setWordDefinitionByBingTranslate(translatedText);
+            setWordDefinitionByCommunity(community);
+            setWordContexts(wordContexts);
             setIsLoading(false);
         };
         fetchData();
     }, [searchDebounce]);
 
+    const items = [
+        {
+            label: "Bing Translate",
+            icon: (
+                <Tooltip title="Bing Translate">
+                    <Translate size={16} color="#000" />
+                </Tooltip>
+            ),
+            key: "1",
+            children: (
+                <>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            color: "#000",
+                            fontWeight: "500",
+                            width: "100%",
+                        }}
+                    >
+                        Meaning:
+                    </div>
+                    <div
+                        style={{
+                            overflowY: "auto",
+                            scrollbarWidth: "thin",
+                            scrollbarColor: "#fff #3a3b3c",
+                            padding: "16px",
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                            textAlign: "left",
+                            color: "#333",
+                            backgroundColor: "#fff",
+                            borderRadius: 8,
+                            border: "1px solid #f1f2f6",
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                color: "#666",
+                                whiteSpace: "pre-line",
+                            }}
+                        >
+                            {wordDefinitionByBingTranslate}
+                        </div>
+                    </div>
+                </>
+            ),
+        },
+        {
+            label: "From Community",
+            icon: (
+                <Tooltip title="Community">
+                    <People size={16} color="#000" />
+                </Tooltip>
+            ),
+            key: "2",
+            children: (
+                <>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            color: "#000",
+                            fontWeight: "500",
+                            width: "100%",
+                        }}
+                    >
+                        Meaning:
+                    </div>
+                    <div
+                        style={{
+                            overflowY: "auto",
+                            scrollbarWidth: "thin",
+                            scrollbarColor: "#fff #3a3b3c",
+                            padding: "16px",
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                            textAlign: "left",
+                            color: "#333",
+                            backgroundColor: "#fff",
+                            borderRadius: 8,
+                            border: "1px solid #f1f2f6",
+                        }}
+                    >
+                        <div>
+                            {wordDefinitionByCommunity.map((item, index) => (
+                                <div
+                                    key={index}
+                                    style={{
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        color: "#666",
+                                        whiteSpace: "pre-line",
+                                    }}
+                                >
+                                    {item}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </>
+            ),
+        },
+        {
+            label: "From Dictionary",
+            key: "3",
+            icon: (
+                <Tooltip title="Dictionary">
+                    <Notepad2 size={16} color="#000" />
+                </Tooltip>
+            ),
+            children: (
+                <>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            color: "#000",
+                            fontWeight: "500",
+                            width: "100%",
+                        }}
+                    >
+                        Meaning:
+                    </div>
+                    <div
+                        style={{
+                            overflowY: "auto",
+                            scrollbarWidth: "thin",
+                            scrollbarColor: "#fff #3a3b3c",
+                            padding: "16px",
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                            textAlign: "left",
+                            color: "#333",
+                            backgroundColor: "#fff",
+                            borderRadius: 8,
+                            border: "1px solid #f1f2f6",
+                        }}
+                    >
+                        <div>
+                            {wordDefinitionByDictionary.map((item, index) => (
+                                <div
+                                    key={index}
+                                    style={{
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        color: "#666",
+                                        whiteSpace: "pre-line",
+                                    }}
+                                >
+                                    {item}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </>
+            ),
+        },
+    ];
+
     return (
         <div
             style={{
-                width: "460px",
+                width: "500px",
                 backgroundColor: "#f9fafb",
                 height: "100%",
             }}
@@ -91,25 +281,44 @@ function PopupTranslate() {
                     </span>
                 </div>
 
-                <div
-                    style={{
-                        borderRadius: "50%",
-                        width: 36,
-                        height: 36,
-                        cursor: "pointer",
-                        overflow: "hidden",
-                    }}
-                >
-                    <img
+                {user ? (
+                    <div
                         style={{
-                            objectFit: "cover",
-                            width: "100%",
-                            height: "100%",
+                            borderRadius: "50%",
+                            width: 36,
+                            height: 36,
+                            cursor: "pointer",
+                            overflow: "hidden",
                         }}
-                        src={user?.photoURL ?? ""}
-                        alt="translate"
-                    />
-                </div>
+                    >
+                        <img
+                            src={user.photoURL}
+                            alt={"user"}
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => {
+                            navigate("/signin");
+                        }}
+                        style={{
+                            height: "36px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "#107cff",
+                            cursor: "pointer",
+                            color: "#fff",
+                        }}
+                    >
+                        Sign In
+                    </button>
+                )}
             </header>
 
             <div
@@ -168,99 +377,14 @@ function PopupTranslate() {
                             }}
                         />
                     </div>
-                    <div style={{ marginTop: "16px" }}>
-                        <div
-                            style={{
-                                fontSize: "14px",
-                                fontWeight: "600",
-                                color: "#333",
-                            }}
-                        >
-                            Translation:
-                        </div>
-                    </div>
-                    <div
+                    <Tabs
+                        defaultActiveKey="1"
+                        tabPosition={"top"}
+                        items={items}
                         style={{
-                            overflowY: "auto",
-                            scrollbarWidth: "thin",
-                            scrollbarColor: "#fff #3a3b3c",
-                            padding: "16px",
                             width: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-start",
-                            textAlign: "left",
-                            color: "#333",
-                            backgroundColor: "#fff",
-                            borderRadius: 8,
-                            border: "1px solid #f1f2f6",
                         }}
-                    >
-                        <div>
-                            <div
-                                style={{
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                    whiteSpace: "pre-line",
-                                }}
-                            >
-                                {wordTranslation}
-                            </div>
-                        </div>
-                        <div
-                            style={{
-                                marginTop: "8px",
-                                width: "100%",
-                            }}
-                        ></div>
-                    </div>
-                    <div style={{ marginTop: "16px" }}>
-                        <div
-                            style={{
-                                fontSize: "14px",
-                                fontWeight: "600",
-                                color: "#333",
-                            }}
-                        >
-                            Meaning:
-                        </div>
-                    </div>
-                    <div
-                        style={{
-                            overflowY: "auto",
-                            scrollbarWidth: "thin",
-                            scrollbarColor: "#fff #3a3b3c",
-                            padding: "16px",
-                            width: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-start",
-                            textAlign: "left",
-                            color: "#333",
-                            backgroundColor: "#fff",
-                            borderRadius: 8,
-                            border: "1px solid #f1f2f6",
-                        }}
-                    >
-                        <div>
-                            <div
-                                style={{
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                    whiteSpace: "pre-line",
-                                }}
-                            >
-                                {wordDefinition.length > 0 &&
-                                    wordDefinition[0].meaning}
-                            </div>
-                        </div>
-                        <div
-                            style={{
-                                marginTop: "8px",
-                                width: "100%",
-                            }}
-                        ></div>
-                    </div>
+                    />
                     <div style={{ marginTop: "16px" }}>
                         <div
                             style={{
@@ -297,15 +421,13 @@ function PopupTranslate() {
                                     whiteSpace: "pre-line",
                                 }}
                             >
-                                {wordDefinition.length > 0 && (
+                                {wordContexts.length > 0 && (
                                     <div>
-                                        {wordDefinition[0].contexts.map(
-                                            (context, index) => (
-                                                <div key={index}>
-                                                    {index + 1}. {context}
-                                                </div>
-                                            )
-                                        )}
+                                        {wordContexts.map((context, index) => (
+                                            <div key={index}>
+                                                {index + 1}. {context}
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>

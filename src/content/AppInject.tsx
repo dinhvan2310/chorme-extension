@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import WebFont from "webfontloader";
 import RenderIf from "./components/RenderIf";
 import TranslateComponent from "./components/TranslatePopup/TranslateComponent";
@@ -44,17 +44,17 @@ function AppInject(props: AppInjectProps) {
                     .getElementById("popupRoot")
                     ?.contains(e.target as Node)
             ) {
-                console.log(getSelectedText());
-
                 setLeft(calcLeftPosition(e.pageX));
                 setTop(e.pageY);
                 setShowPopup(true);
             } else if (
                 !document
                     .getElementById("popupRoot")
+                    ?.contains(e.target as Node) &&
+                !document
+                    .getElementById("treeSelection")
                     ?.contains(e.target as Node)
             ) {
-                console.log("clicked outside");
                 setShowPopup(false);
                 setShowTranslation(false);
             }
@@ -69,8 +69,6 @@ function AppInject(props: AppInjectProps) {
                     .getElementById("popupRoot")
                     ?.contains(e.target as Node)
             ) {
-                console.log(getSelectedText());
-
                 setLeft(calcLeftPosition(e.pageX));
                 setTop(e.pageY);
                 setShowPopup(true);
@@ -78,9 +76,11 @@ function AppInject(props: AppInjectProps) {
             } else if (
                 !document
                     .getElementById("popupRoot")
+                    ?.contains(e.target as Node) &&
+                !document
+                    .getElementById("treeSelection")
                     ?.contains(e.target as Node)
             ) {
-                console.log("clicked outside");
                 setShowPopup(false);
                 setShowTranslation(false);
             }
@@ -118,14 +118,12 @@ function AppInject(props: AppInjectProps) {
                         setShowTranslation(true);
 
                         document.addEventListener("click", (e) => {
-                            console.log(e.target as Node);
                             if (
                                 !document
                                     .getElementById("popupRoot")
                                     ?.contains(e.target as Node) &&
                                 showTranslation === true
                             ) {
-                                console.log("clicked outside popup");
                                 setShowTranslation(false);
                             }
                         });

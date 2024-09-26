@@ -2,11 +2,14 @@
 
 import { useEffect } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import LoginPage from "../../components/Popup/PopupSignin/LoginPage";
 import Settings from "../layout/Settings";
 import PopupComponent from "../layout/PopupComponent";
 import PopupTranslate from "../layout/PopupTranslate";
 import PopupLayout from "../layout/PopupLayout";
+import PopupNotebook from "../layout/PopupNotebook";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import PopupWordSet from "../layout/PopupWordSet";
+import PopupWord from "../layout/PopupWord";
 
 // function App() {
 //   const [isActivated, setIsActivated] = useState(false);
@@ -94,15 +97,36 @@ function App() {
                     path: "/settings",
                     element: <Settings />,
                 },
+                {
+                    path: "/notebook",
+                    element: <PopupNotebook />,
+                },
+                {
+                    path: "/folders/:folderid",
+                    element: <PopupWordSet />,
+                },
+                {
+                    path: "/folders/:folderid/wordsets/:wordsetid",
+                    element: <PopupWord />,
+                },
             ],
-        },
-        {
-            path: "/signin",
-            element: <LoginPage />,
         },
     ]);
 
-    return <RouterProvider router={route} />;
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: {
+                // staleTime: 1000 * 60 * 5
+                refetchOnWindowFocus: false,
+            },
+        },
+    });
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <RouterProvider router={route} />
+        </QueryClientProvider>
+    );
 }
 
 export default App;

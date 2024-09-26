@@ -1,20 +1,9 @@
 import ReactDOM from "react-dom/client";
+import SettingsProvider from "../context/SettingsContext";
 import AppInject from "./AppInject";
 import "./index.css";
 import RememberInject from "./RemmemberInject";
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === "FILTER") {
-        // replace text
-        const bodyText = document.querySelector("body")?.innerHTML;
-        const key = request.data;
-        const newBodyText = bodyText?.replace(
-            new RegExp(key, "g"),
-            `<span style="background-color: yellow">${key}</span>`
-        );
-        document.querySelector("body")!.innerHTML = newBodyText!;
-    }
-});
+import { updateWord } from "../firebase/wordAPI";
 
 // Create a root element for the popup component and append it to the body
 const popupRoot = document.createElement("div");
@@ -23,7 +12,6 @@ document.body.appendChild(popupRoot);
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "REMEMBER") {
-        console.log("REMEMBER", request);
         // Render the RememberInject component
         if (document.getElementById("rememberRoot")) {
             document.getElementById("rememberRoot")?.remove();
@@ -35,10 +23,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             document.getElementById("rememberRoot") as HTMLElement
         );
         remember.render(
-            <RememberInject
-                word={request.word}
-                definition={request.definition}
-            />
+            <SettingsProvider>
+                <RememberInject
+                    word={request.word}
+                    definition={request.definition}
+                    onRemembered={() => {
+                        updateWord(
+                            request.wordId,
+                            request.learned === "notLearned"
+                                ? "learning"
+                                : "mastered"
+                        );
+                    }}
+                />
+            </SettingsProvider>
         );
     }
 });
@@ -47,7 +45,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 const popup = ReactDOM.createRoot(
     document.getElementById("popupRoot") as HTMLElement
 );
-popup.render(<AppInject />);
+popup.render(
+    <SettingsProvider>
+        <AppInject />
+    </SettingsProvider>
+);
 
 // funtions --------------------------------------------------------------------------------------------------------------
 

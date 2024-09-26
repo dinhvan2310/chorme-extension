@@ -1,5 +1,5 @@
-import { Translate, VolumeHigh } from "iconsax-react";
-import React, { useEffect } from "react";
+import { Notepad2, People, Translate, VolumeHigh } from "iconsax-react";
+import React, { useEffect, useState } from "react";
 import UseAnimations from "react-useanimations";
 import TouchableOpacity from "../../../components/TouchableOpacity/TouchableOpacity";
 // EVERY ANIMATION NEEDS TO BE IMPORTED FIRST -> YOUR BUNDLE WILL INCLUDE ONLY WHAT IT NEEDS
@@ -7,12 +7,18 @@ import loading2 from "react-useanimations/lib/loading2";
 import settings2 from "react-useanimations/lib/settings2";
 import star from "react-useanimations/lib/star";
 
-import { WordType } from "../../../types/WordType";
+import { Tabs, Tooltip, Typography } from "antd";
+import { translateText } from "../../../apis/bingTranslateApi/bingTranslate";
+import { getSettings } from "../../../apis/settings/settings";
+import { SettingsType } from "../../../context/SettingsContext";
+import { suggestDefinition } from "../../../firebase/suggestAPI";
 import {
-    convertToWordType,
-    getWordDefinition,
-} from "../../apis/dictionaryFree";
-import { translateText } from "../../apis/bingTranslateApi/bingTranslate";
+    addWord,
+    checkCurrentUserIsHaveWord,
+    removeWord,
+} from "../../../firebase/wordAPI";
+import { getWordSet } from "../../../firebase/wordSetAPI";
+import { WordType } from "../../../types/WordType";
 
 interface TranslatePopupProps {
     textSelection: string;
@@ -20,32 +26,84 @@ interface TranslatePopupProps {
 
 function TranslatePopup(props: TranslatePopupProps) {
     const { textSelection } = props;
+    const [wordSetSave, setWordSetSave] = useState<{
+        wordSetId: string;
+        wordSetName: string;
+    }>();
 
-    const [wordTranslation, setWordTranslation] = React.useState<string>("");
-    const [wordDefinition, setWordDefinition] = React.useState<WordType[]>([]);
+    const [saveWord, setSaveWord] = useState(false);
+    const [settingsData, setSettingsData] = useState<SettingsType>();
+
+    const [activeTab, setActiveTab] = React.useState("1");
+    const [wordDefinitionByDictionary, setWordDefinitionByDictionary] =
+        React.useState<string[]>([]);
+    const [wordDefinitionByCommunity, setWordDefinitionByCommunity] =
+        React.useState<string[]>([]);
+    const [wordDefinitionByBingTranslate, setWordDefinitionByBingTranslate] =
+        React.useState<string>();
+
     const [isLoading, setIsLoading] = React.useState(false);
+
+    const [infoText, setInfoText] = useState<string>("");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const settings = await getSettings();
+            setSettingsData(settings);
+            if (settings.wordSetSave) {
+                setWordSetSave({
+                    wordSetId: settings.wordSetSave,
+                    wordSetName: (await getWordSet(settings.wordSetSave)).name,
+                });
+            }
+
+            const checkCurrentUserHaveWord = await checkCurrentUserIsHaveWord(
+                `${textSelection.trim().toLowerCase()}`,
+                undefined
+            );
+            if (checkCurrentUserHaveWord.length === 0) {
+                setInfoText("");
+            } else {
+                let error = "This word is already in: ";
+                checkCurrentUserHaveWord.forEach((item, index) => {
+                    error += `(${item.folderName} - ${item.wordSetName})`;
+                    if (checkCurrentUserHaveWord.length > 1) {
+                        if (index !== checkCurrentUserHaveWord.length - 1) {
+                            error += ", ";
+                        }
+                    }
+                });
+                setInfoText(error);
+            }
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
-            const data = await await convertToWordType(
-                (await getWordDefinition(textSelection)) ?? [],
-                5,
-                6
+            const dictionary = await suggestDefinition(
+                textSelection,
+                "",
+                "dictionary"
             );
             const translatedText = await translateText(
                 textSelection,
-                ["vi"],
-                "en"
+                [settingsData?.langTo ?? "vi"],
+                settingsData?.langFrom ?? "en"
             );
-            setWordTranslation(translatedText);
-            setWordDefinition(data);
+            const community = await suggestDefinition(
+                textSelection,
+                "",
+                "community"
+            );
+            setWordDefinitionByDictionary(dictionary);
+            setWordDefinitionByBingTranslate(translatedText);
+            setWordDefinitionByCommunity(community);
             setIsLoading(false);
         };
         fetchData();
     }, [textSelection]);
-
-    console.log(wordDefinition);
 
     if (isLoading) {
         return (
@@ -71,30 +129,119 @@ function TranslatePopup(props: TranslatePopupProps) {
         );
     }
 
-    if (wordDefinition.length === 0) {
-        console.log("wordDefinition");
-        return (
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    borderRadius: "8px",
-                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-                    color: "#fff",
-                    alignItems: "flex-start",
-                    backgroundColor: "#3a3b3c",
-                    padding: "8px",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    minWidth: "240px",
-                    maxWidth: "520px",
-                    fontFamily: "Poppins, sans-serif",
-                }}
-            >
-                {wordTranslation}
-            </div>
-        );
-    }
+    const items = [
+        {
+            label: "",
+            icon: (
+                <Tooltip title="Bing Translate">
+                    <Translate size={16} color="#000" />
+                </Tooltip>
+            ),
+            key: "1",
+            children: (
+                <>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            color: "#000",
+                            fontWeight: "500",
+                            width: "100%",
+                        }}
+                    >
+                        Meaning:
+                    </div>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            color: "#666",
+                            whiteSpace: "pre-line",
+                        }}
+                    >
+                        {wordDefinitionByBingTranslate}
+                    </div>
+                </>
+            ),
+        },
+        {
+            label: "",
+            icon: (
+                <Tooltip title="Community">
+                    <People size={16} color="#000" />
+                </Tooltip>
+            ),
+            key: "2",
+            disabled: wordDefinitionByCommunity.length === 0,
+            children: (
+                <>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            color: "#000",
+                            fontWeight: "500",
+                            width: "100%",
+                        }}
+                    >
+                        Meaning:
+                    </div>
+                    <div>
+                        {wordDefinitionByCommunity.map((item, index) => (
+                            <div
+                                key={index}
+                                style={{
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                    color: "#666",
+                                    whiteSpace: "pre-line",
+                                }}
+                            >
+                                {item}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            ),
+        },
+        {
+            label: "",
+            key: "3",
+            icon: (
+                <Tooltip title="Dictionary">
+                    <Notepad2 size={16} color="#000" />
+                </Tooltip>
+            ),
+            disabled: wordDefinitionByDictionary.length === 0,
+            children: wordDefinitionByDictionary.length > 0 && (
+                <>
+                    <div
+                        style={{
+                            fontSize: "14px",
+                            color: "#000",
+                            fontWeight: "500",
+                            width: "100%",
+                        }}
+                    >
+                        Meaning:
+                    </div>
+                    <div>
+                        {wordDefinitionByDictionary.map((item, index) => (
+                            <div
+                                key={index}
+                                style={{
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                    color: "#666",
+                                    whiteSpace: "pre-line",
+                                }}
+                            >
+                                {item}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            ),
+        },
+    ];
 
     return (
         <div
@@ -108,9 +255,6 @@ function TranslatePopup(props: TranslatePopupProps) {
                 backgroundColor: "#FFF",
 
                 maxHeight: "240px",
-                minWidth: "240px",
-
-                maxWidth: "520px",
                 fontFamily: "Poppins, sans-serif",
             }}
         >
@@ -135,6 +279,8 @@ function TranslatePopup(props: TranslatePopupProps) {
                             padding: "8px",
                             borderRadius: "8px",
                             marginRight: "8px",
+                            display: "flex",
+                            alignItems: "center",
                         }}
                         onPress={() => {
                             const synth = window.speechSynthesis;
@@ -154,19 +300,79 @@ function TranslatePopup(props: TranslatePopupProps) {
                             color: "#000",
                         }}
                     >
-                        {textSelection}
+                        {textSelection.slice(0, 36) +
+                            (textSelection.length > 36 ? "..." : "")}
                     </div>
                 </div>
                 <div
                     style={{
                         display: "flex",
                         flexDirection: "row",
+                        alignItems: "center",
                     }}
                 >
+                    <Tooltip title="Save to word set">
+                        <Typography.Text type="secondary">
+                            {wordSetSave?.wordSetName}
+                        </Typography.Text>
+                    </Tooltip>
                     <TouchableOpacity
                         style={{
                             padding: "8px",
                             borderRadius: "8px",
+                        }}
+                        onPress={async () => {
+                            if (!saveWord) {
+                                let word: WordType;
+                                switch (activeTab) {
+                                    case "1":
+                                        word = {
+                                            name: textSelection,
+                                            meaning:
+                                                wordDefinitionByBingTranslate ??
+                                                "",
+                                            contexts: [],
+                                            imageURL: "",
+                                        };
+                                        break;
+                                    case "2":
+                                        word = {
+                                            name: textSelection,
+                                            meaning:
+                                                wordDefinitionByCommunity[0] ??
+                                                "",
+                                            contexts: [],
+                                            imageURL: "",
+                                        };
+                                        break;
+                                    case "3":
+                                        word = {
+                                            name: textSelection,
+                                            meaning:
+                                                wordDefinitionByDictionary[0] ??
+                                                "",
+                                            contexts: [],
+                                            imageURL: "",
+                                        };
+                                        break;
+                                    default:
+                                        word = {
+                                            name: textSelection,
+                                            meaning:
+                                                wordDefinitionByBingTranslate ??
+                                                "",
+                                            contexts: [],
+                                        };
+                                        break;
+                                }
+                                if (!settingsData?.wordSetSave) return null;
+                                await addWord(settingsData?.wordSetSave, word);
+                            } else {
+                                await removeWord(
+                                    `${settingsData?.wordSetSave}_${textSelection}`
+                                );
+                            }
+                            setSaveWord(!saveWord);
                         }}
                     >
                         <UseAnimations
@@ -191,7 +397,9 @@ function TranslatePopup(props: TranslatePopupProps) {
                     </TouchableOpacity>
                 </div>
             </div>
-
+            {infoText !== "" && (
+                <Typography.Text type="warning">{infoText}</Typography.Text>
+            )}
             <div
                 style={{
                     width: "100%",
@@ -208,88 +416,25 @@ function TranslatePopup(props: TranslatePopupProps) {
                     maxHeight: "330px",
                     scrollbarWidth: "thin",
                     scrollbarColor: "#666666 #F9f9f9",
-                    padding: "8px",
+                    paddingLeft: "8px",
+                    paddingTop: "8px",
+                    paddingBottom: "8px",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
                     textAlign: "left",
                 }}
             >
-                <div
+                <Tabs
+                    onChange={(key) => setActiveTab(key)}
+                    defaultActiveKey={activeTab}
+                    tabPosition={"right"}
+                    items={items}
                     style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        marginTop: "8px",
-                        marginBottom: "14px",
+                        minWidth: 320,
+                        maxWidth: 500,
                     }}
-                >
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "flex-start",
-                            color: "#000",
-                        }}
-                    >
-                        <Translate size="16" style={{ marginRight: "16px" }} />
-                        {wordTranslation}
-                    </div>
-                </div>
-                <div
-                    style={{
-                        fontSize: "14px",
-                        color: "#000",
-                        fontWeight: "500",
-                    }}
-                >
-                    Meaning:
-                </div>
-                <div>
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            color: "#666",
-                            whiteSpace: "pre-line",
-                        }}
-                    >
-                        {wordDefinition[0].meaning}
-                    </div>
-                </div>
-                <div
-                    style={{
-                        marginTop: "8px",
-                        width: "100%",
-                    }}
-                >
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            color: "#000",
-                            fontWeight: "500",
-                        }}
-                    >
-                        Example:{" "}
-                    </div>
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            color: "#666",
-                            whiteSpace: "pre-line",
-                        }}
-                    >
-                        {wordDefinition[0].contexts
-                            .map((context) => `• ${context}`)
-                            .join("\n")}
-                    </div>
-                </div>
+                />
             </div>
         </div>
     );

@@ -1,13 +1,32 @@
-import { Logout, Notepad2, Setting2, Translate } from "iconsax-react";
-import { useContext } from "react";
+import { Typography } from "antd";
+import {
+    Logout,
+    Notepad2,
+    RefreshLeftSquare,
+    Setting2,
+    Translate,
+} from "iconsax-react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthProvider";
-import TouchableOpacity from "../../components/TouchableOpacity/TouchableOpacity";
 import ButtonComponent from "../../components/Button/ButtonComponent";
+import TouchableOpacity from "../../components/TouchableOpacity/TouchableOpacity";
+import { AuthContext } from "../../context/AuthProvider";
+import { getWordNotLearned } from "../../firebase/wordAPI";
+import { WordType } from "../../types/WordType";
 
 function PopupComponent() {
     const navigate = useNavigate();
     const context = useContext(AuthContext);
+    const [wordNotLearned, setWordNotLearned] = useState<WordType[]>([]);
+    useEffect(() => {
+        (async () => {
+            const wordsNotLearned = (
+                await chrome.storage.local.get("wordNotLearned")
+            ).wordNotLearned;
+            setWordNotLearned(wordsNotLearned);
+        })();
+    });
+
     if (!context) {
         return null; // or handle the null case appropriately
     }
@@ -16,7 +35,7 @@ function PopupComponent() {
     return (
         <div
             style={{
-                width: "360px",
+                width: "500px",
                 backgroundColor: "#f9fafb",
                 height: "100%",
                 display: "flex",
@@ -42,7 +61,13 @@ function PopupComponent() {
                             display: "flex",
                         }}
                     >
-                        <TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {
+                                chrome.tabs.create({
+                                    url: "https://vocabulary-notebook-989d7.web.app",
+                                });
+                            }}
+                        >
                             <img
                                 src="icon.png"
                                 alt="logo"
@@ -65,16 +90,16 @@ function PopupComponent() {
                             Vocab Notebook
                         </span>
                     </div>
-                    <div
-                        style={{
-                            borderRadius: "50%",
-                            width: 36,
-                            height: 36,
-                            cursor: "pointer",
-                            overflow: "hidden",
-                        }}
-                    >
-                        {user ? (
+                    {user ? (
+                        <div
+                            style={{
+                                borderRadius: "50%",
+                                width: 36,
+                                height: 36,
+                                cursor: "pointer",
+                                overflow: "hidden",
+                            }}
+                        >
                             <img
                                 src={user.photoURL}
                                 alt={"user"}
@@ -84,26 +109,28 @@ function PopupComponent() {
                                     objectFit: "cover",
                                 }}
                             />
-                        ) : (
-                            <button
-                                onClick={() => {
-                                    navigate("/signin");
-                                }}
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    backgroundColor: "#f9fafb",
-                                    border: "none",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                Sign In
-                            </button>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => {
+                                // navigate("/signin");
+                                chrome.tabs.create({
+                                    url: "https://vocabulary-notebook-989d7.web.app/login",
+                                });
+                            }}
+                            style={{
+                                height: "36px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "#107cff",
+                                cursor: "pointer",
+                                color: "#fff",
+                            }}
+                        >
+                            Sign In
+                        </button>
+                    )}
                 </header>
                 <div>
                     <div
@@ -132,12 +159,31 @@ function PopupComponent() {
                                 style={{ width: "100%", marginRight: 8 }}
                             />
                             <ButtonComponent
+                                disabled={user ? false : true}
                                 text="Notebook"
-                                icon={<Notepad2 size={26} color="#333" />}
+                                icon={
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Notepad2 size={26} color="#333" />
+                                        <Typography.Text
+                                            style={{
+                                                fontSize: 10,
+                                                color: "#666",
+                                            }}
+                                        >
+                                            {user
+                                                ? "Click to view"
+                                                : "Sign in to use"}
+                                        </Typography.Text>
+                                    </div>
+                                }
                                 onClick={() => {
-                                    chrome.tabs.create({
-                                        url: "https://vocabulary-notebook-989d7.web.app",
-                                    });
+                                    navigate("/notebook");
                                 }}
                                 style={{ width: "100%" }}
                             />
@@ -149,9 +195,65 @@ function PopupComponent() {
                             }}
                         >
                             <ButtonComponent
-                                text="Translate"
-                                icon={<Translate size={26} color="#333" />}
-                                onClick={() => {
+                                disabled={user ? false : true}
+                                text={
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Typography.Text
+                                            style={{ fontSize: 14 }}
+                                        >
+                                            Remind Word
+                                        </Typography.Text>
+                                        <Typography.Text
+                                            style={{
+                                                fontSize: 10,
+                                                color: "#666",
+                                            }}
+                                        >
+                                            (Ctrl + Shift + R)
+                                        </Typography.Text>
+                                    </div>
+                                }
+                                icon={
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <RefreshLeftSquare
+                                            size={26}
+                                            color="#333"
+                                        />
+                                        <Typography.Text
+                                            style={{
+                                                fontSize: 10,
+                                                color: "#666",
+                                            }}
+                                        >
+                                            {user
+                                                ? wordNotLearned?.length +
+                                                  " words left"
+                                                : "Sign in to use"}
+                                        </Typography.Text>
+                                    </div>
+                                }
+                                onClick={async () => {
+                                    const wordsNotLearned: WordType[] =
+                                        await getWordNotLearned();
+                                    const word =
+                                        wordsNotLearned[
+                                            Math.floor(
+                                                Math.random() *
+                                                    wordsNotLearned.length
+                                            )
+                                        ];
                                     chrome.tabs.query(
                                         { active: true, currentWindow: true },
                                         (tabs) => {
@@ -159,15 +261,10 @@ function PopupComponent() {
                                                 tabs[0].id || 0,
                                                 {
                                                     type: "REMEMBER",
-                                                    word: "Translate",
-                                                    definition:
-                                                        "To convert text from one language to another",
-                                                },
-                                                (response) => {
-                                                    console.log(
-                                                        "response",
-                                                        response
-                                                    );
+                                                    word: word.name,
+                                                    definition: word.meaning,
+                                                    wordId: word.wordId,
+                                                    learned: word.learned,
                                                 }
                                             );
                                         }

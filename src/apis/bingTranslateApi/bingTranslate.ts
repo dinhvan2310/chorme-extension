@@ -1,16 +1,24 @@
 
-export async function translateText(text: string, to: string[] = ['vi'], from: string = 'en') {
+export async function translateText(text: string, to: string[] = ['vi'], from: 'detect' | 'en' | 'vi' | 'ja' | 'zh' | 'ko' | 'fr' = 'en') {
     const ItsNotAKey = 'a41a65f45e0c4c58b282b42a8010ce06';
     const endpoint = 'https://api.cognitive.microsofttranslator.com';
 
     const path = '/translate';
     const constructedUrl = endpoint + path;
 
-    const params = new URLSearchParams({
-        'api-version': '3.0',
-        'from': from,
-        'to': to.join(',')
-    });
+    let params;
+    if (from === 'detect') {
+        params = new URLSearchParams({
+            'api-version': '3.0',
+            'to': to.join(',')
+        });
+    } else {
+        params = new URLSearchParams({
+            'api-version': '3.0',
+            'from': from,
+            'to': to.join(',')
+        });
+    }
 
     const headers = {
         'Ocp-Apim-Subscription-Key': ItsNotAKey,

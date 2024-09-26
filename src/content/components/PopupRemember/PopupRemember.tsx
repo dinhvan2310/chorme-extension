@@ -72,8 +72,8 @@ function PopupRemember(props: PopupRememberProps) {
                 bottom: 32,
             }}
             dragConstraints={{
-                left: -200,
-                right: 200,
+                left: -0,
+                right: 0,
             }}
             exit={{
                 opacity: 0,
@@ -175,7 +175,6 @@ function PopupRemember(props: PopupRememberProps) {
                 </motion.div>
                 <motion.p
                     onClick={async () => {
-                        console.log("clicked");
                         await controls.start({
                             height: 200,
                         });

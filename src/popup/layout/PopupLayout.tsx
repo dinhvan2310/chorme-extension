@@ -5,7 +5,7 @@ function PopupLayout() {
     return (
         <div
             style={{
-                height: 480,
+                height: 530,
                 overflowY: "auto",
                 overflowX: "hidden",
                 backgroundColor: "#f9fafb",

@@ -1,15 +1,23 @@
 import React from "react";
 
 interface ButtonComponentProps {
-    text: string;
+    text: React.ReactNode;
     icon: React.ReactNode;
     iconPosition?: "left" | "top";
 
     onClick: () => void;
     style?: React.CSSProperties;
+    disabled?: boolean;
 }
 function ButtonComponent(props: ButtonComponentProps) {
-    const { text, icon, onClick, style, iconPosition = "top" } = props;
+    const {
+        text,
+        icon,
+        onClick,
+        style,
+        iconPosition = "top",
+        disabled,
+    } = props;
     const [hover, setHover] = React.useState(false);
     const [active, setActive] = React.useState(false);
 
@@ -24,11 +32,14 @@ function ButtonComponent(props: ButtonComponentProps) {
                     setActive(false);
                 }}
                 style={{
+                    pointerEvents: disabled ? "none" : "auto",
+                    opacity: disabled ? 0.5 : 1,
                     display: "inline-flex",
                     flexDirection: "column",
                     alignItems: "center",
                     cursor: "pointer",
-                    padding: "42px",
+                    height: 175,
+                    justifyContent: "center",
                     borderRadius: 8,
                     backgroundColor: hover
                         ? "#F8F8F8"
@@ -64,6 +75,8 @@ function ButtonComponent(props: ButtonComponentProps) {
                     setActive(false);
                 }}
                 style={{
+                    pointerEvents: disabled ? "none" : "auto",
+                    opacity: disabled ? 0.5 : 1,
                     display: "inline-flex",
                     flexDirection: "row",
                     alignItems: "center",

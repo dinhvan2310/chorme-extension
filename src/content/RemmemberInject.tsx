@@ -3,23 +3,31 @@ import {
     useMotionValue,
     useMotionValueEvent,
 } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PopupRemember from "./components/PopupRemember/PopupRemember";
 interface RememberInjectProps {
     word: string;
     definition: string;
+
+    onRemembered?: () => void;
 }
 function RememberInject(props: RememberInjectProps) {
-    const { word, definition } = props;
+    const { word, definition, onRemembered } = props;
     const [show, setShow] = useState(true);
+    const [remembered, setRemembered] = useState(false);
+    useEffect(() => {
+        if (remembered && onRemembered) {
+            onRemembered();
+        }
+    }, [remembered]);
     const x = useMotionValue(0);
     useMotionValueEvent(x, "change", (v) => {
-        console.log(v);
-        if (v > 200) {
+        if (v > 100) {
             setShow(false);
         }
         if (v < -200) {
             setShow(false);
+            setRemembered(true);
         }
     });
 

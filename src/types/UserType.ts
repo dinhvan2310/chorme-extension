@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export interface UserType {
     userId: string;
@@ -6,6 +6,8 @@ export interface UserType {
     email: string;
     photoURL: string;
 
-    provider?: string;
-    createAt?: Timestamp;
+    provider: string;
+    createAt: Timestamp;
+
+    recentlyWordSet?: DocumentReference[];
 }

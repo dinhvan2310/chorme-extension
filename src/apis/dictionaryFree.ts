@@ -1,4 +1,4 @@
-import { WordType } from "../../types/WordType";
+import { WordType } from "../types/WordType";
 
 interface License {
     name: string;

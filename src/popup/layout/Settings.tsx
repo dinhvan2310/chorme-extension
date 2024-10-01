@@ -1,29 +1,17 @@
-import {
-    Button,
-    Collapse,
-    Form,
-    Input,
-    InputNumber,
-    List,
-    Select,
-    Space,
-    Switch,
-    TreeSelect,
-} from "antd";
-import { ArrowLeft2, Trash } from "iconsax-react";
+import { Collapse, Form, InputNumber, Select, Switch, TreeSelect } from "antd";
+import { ArrowLeft2 } from "iconsax-react";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TouchableOpacity from "../../components/TouchableOpacity/TouchableOpacity";
 import { AuthContext } from "../../context/AuthProvider";
 import { SettingsContext } from "../../context/SettingsContext";
 import { getTreeStructure } from "../../firebase/wordSetAPI";
+import { setSettings } from "../../apis/settings/settings";
 
 function Settings() {
     const settingsData = useContext(SettingsContext);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
-
-    const [urlAccessHighlight, setUrlAccessHighlight] = useState<string>("");
 
     const [treeStructure, setTreeStructure] = useState<any[]>([]);
 
@@ -47,8 +35,11 @@ function Settings() {
                             defaultValue={settingsData?.langFrom}
                             value={settingsData?.langFrom}
                             onChange={(value) => {
-                                settingsData?._setLangFrom?.(value);
-                                console.log(settingsData);
+                                if (!settingsData) return;
+                                setSettings({
+                                    ...settingsData,
+                                    langFrom: value,
+                                });
                             }}
                             options={[
                                 { label: "Auto Detect", value: "detect" },
@@ -66,8 +57,11 @@ function Settings() {
                             defaultValue={settingsData?.langTo}
                             value={settingsData?.langTo}
                             onChange={(value) => {
-                                settingsData?._setLangTo?.(value);
-                                console.log(settingsData);
+                                if (!settingsData) return;
+                                setSettings({
+                                    ...settingsData,
+                                    langTo: value,
+                                });
                             }}
                             options={[
                                 { label: "English", value: "en" },
@@ -85,7 +79,11 @@ function Settings() {
                             defaultValue={settingsData?.wordSetSave}
                             treeData={treeStructure}
                             onChange={(value) => {
-                                settingsData?._setWordSetSave?.(value);
+                                if (!settingsData) return;
+                                setSettings({
+                                    ...settingsData,
+                                    wordSetSave: value,
+                                });
                             }}
                         />
                     </Form.Item>
@@ -94,111 +92,62 @@ function Settings() {
         },
         {
             key: "2",
-            label: "Highlight word",
+            label: "Reminder",
             children: (
                 <>
                     <Form.Item
-                        name="switchHighlight"
-                        label="Allow highlight words all websites"
+                        name="autoReminder"
+                        label="Auto reminder(Re-open chrome to apply changes)"
                     >
                         <Switch
-                            defaultChecked={
-                                settingsData?.allowHighlightAllWebsites
-                            }
-                            value={settingsData?.allowHighlightAllWebsites}
-                            onChange={(value) =>
-                                settingsData?.setAllowHighlightAllWebsites?.(
-                                    value
-                                )
-                            }
+                            defaultChecked={settingsData?.isAutoReminder}
+                            value={settingsData?.isAutoReminder}
+                            onChange={(value) => {
+                                if (!settingsData) return;
+                                setSettings({
+                                    ...settingsData,
+                                    isAutoReminder: value,
+                                });
+                            }}
                         />
                     </Form.Item>
                     <Form.Item
-                        label="Access websites allowed to highlight words"
-                        name="accessListHighLightWordNotLearned"
-                        hidden={settingsData?.allowHighlightAllWebsites}
-                    >
-                        <div
-                            id="scrollableDiv"
-                            style={{
-                                height: 140,
-                                overflow: "auto",
-                                padding: "0 16px",
-                                border: "1px solid rgba(140, 140, 140, 0.35)",
-                                borderRadius: 4,
-                                scrollbarWidth: "thin",
-                                scrollbarColor: "#107cff #f1f2f6",
-                            }}
-                        >
-                            <List
-                                dataSource={
-                                    settingsData?.accessListHighLightWordNotLearned
-                                }
-                                renderItem={(item) => (
-                                    <List.Item key={item}>
-                                        <List.Item.Meta
-                                            title={
-                                                <a href={item}>
-                                                    {item.slice(0, 32) +
-                                                        (item.length > 32
-                                                            ? "..."
-                                                            : "")}
-                                                </a>
-                                            }
-                                        />
-                                        <TouchableOpacity
-                                            onPress={() =>
-                                                settingsData?.removeAccessListHighLightWordNotLearned?.(
-                                                    item
-                                                )
-                                            }
-                                        >
-                                            <Trash size={20} color="#D91656" />
-                                        </TouchableOpacity>
-                                    </List.Item>
-                                )}
-                            />
-                        </div>
-                    </Form.Item>
-                    {settingsData?.allowHighlightAllWebsites === false && (
-                        <Space.Compact style={{ width: "100%" }}>
-                            <Input
-                                placeholder="Add new url"
-                                value={urlAccessHighlight}
-                                onChange={(e) =>
-                                    setUrlAccessHighlight(e.target.value)
-                                }
-                            />
-                            <Button
-                                type="primary"
-                                onClick={() => {
-                                    settingsData?.addAccessListHighLightWordNotLearned?.(
-                                        urlAccessHighlight
-                                    );
-                                    setUrlAccessHighlight("");
-                                }}
-                            >
-                                Add
-                            </Button>
-                        </Space.Compact>
-                    )}
-                    <Form.Item
-                        label="Number of times learned to change status"
-                        name="numOfTimesLearnedToChangeStatus"
+                        label="Reminder interval (minutes)"
+                        name="reminderInterval"
                     >
                         <InputNumber
                             min={1}
-                            defaultValue={
-                                settingsData?.numOfTimesLearnedToChangeStatus
-                            }
-                            value={
-                                settingsData?.numOfTimesLearnedToChangeStatus
-                            }
+                            defaultValue={settingsData?.reminderInterval}
+                            value={settingsData?.reminderInterval}
                             onChange={(value) => {
-                                if (typeof value === "number")
-                                    settingsData?.setNumOfTimesLearnedToChangeStatus?.(
-                                        value
-                                    );
+                                if (typeof value === "number") {
+                                    if (!settingsData) return;
+                                    setSettings({
+                                        ...settingsData,
+                                        reminderInterval: value,
+                                    });
+                                }
+                            }}
+                        />
+                    </Form.Item>
+                </>
+            ),
+        },
+        {
+            key: "3",
+            label: "Highlight",
+            children: (
+                <>
+                    <Form.Item name="isHighlight" label="Highlight words">
+                        <Switch
+                            defaultChecked={settingsData?.isHighlight}
+                            value={settingsData?.isHighlight}
+                            onChange={(value) => {
+                                if (!settingsData) return;
+                                setSettings({
+                                    ...settingsData,
+                                    isHighlight: value,
+                                });
                             }}
                         />
                     </Form.Item>

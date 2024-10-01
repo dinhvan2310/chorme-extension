@@ -9,8 +9,7 @@ import star from "react-useanimations/lib/star";
 
 import { Tabs, Tooltip, Typography } from "antd";
 import { translateText } from "../../../apis/bingTranslateApi/bingTranslate";
-import { getSettings } from "../../../apis/settings/settings";
-import { SettingsType } from "../../../context/SettingsContext";
+import { getSettings, SettingsType } from "../../../apis/settings/settings";
 import { suggestDefinition } from "../../../firebase/suggestAPI";
 import {
     addWord,
@@ -30,6 +29,7 @@ function TranslatePopup(props: TranslatePopupProps) {
         wordSetId: string;
         wordSetName: string;
     }>();
+    const [userId, setUserId] = useState<string>();
 
     const [saveWord, setSaveWord] = useState(false);
     const [settingsData, setSettingsData] = useState<SettingsType>();
@@ -48,15 +48,29 @@ function TranslatePopup(props: TranslatePopupProps) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const settings = await getSettings();
-            setSettingsData(settings);
-            if (settings.wordSetSave) {
-                setWordSetSave({
-                    wordSetId: settings.wordSetSave,
-                    wordSetName: (await getWordSet(settings.wordSetSave)).name,
-                });
+            setIsLoading(true);
+
+            const data = await chrome.storage.local.get("userId");
+            if (!data.userId) setUserId("");
+            else {
+                setUserId(data.userId);
             }
 
+            const settings = await getSettings();
+            console.log("settings", settings);
+            setSettingsData(settings);
+            if (settings.wordSetSave === "") {
+                setWordSetSave({
+                    wordSetId: "",
+                    wordSetName: "",
+                });
+            } else {
+                setWordSetSave({
+                    wordSetId: settings.wordSetSave,
+                    wordSetName:
+                        (await getWordSet(settings.wordSetSave))?.name ?? "",
+                });
+            }
             const checkCurrentUserHaveWord = await checkCurrentUserIsHaveWord(
                 `${textSelection.trim().toLowerCase()}`,
                 undefined
@@ -75,13 +89,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                 });
                 setInfoText(error);
             }
-        };
-        fetchData();
-    }, []);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
             const dictionary = await suggestDefinition(
                 textSelection,
                 "",
@@ -89,8 +97,8 @@ function TranslatePopup(props: TranslatePopupProps) {
             );
             const translatedText = await translateText(
                 textSelection,
-                [settingsData?.langTo ?? "vi"],
-                settingsData?.langFrom ?? "en"
+                [settings?.langTo ?? "vi"],
+                settings?.langFrom ?? "en"
             );
             const community = await suggestDefinition(
                 textSelection,
@@ -316,72 +324,78 @@ function TranslatePopup(props: TranslatePopupProps) {
                             {wordSetSave?.wordSetName}
                         </Typography.Text>
                     </Tooltip>
-                    <TouchableOpacity
-                        style={{
-                            padding: "8px",
-                            borderRadius: "8px",
-                        }}
-                        onPress={async () => {
-                            if (!saveWord) {
-                                let word: WordType;
-                                switch (activeTab) {
-                                    case "1":
-                                        word = {
-                                            name: textSelection,
-                                            meaning:
-                                                wordDefinitionByBingTranslate ??
-                                                "",
-                                            contexts: [],
-                                            imageURL: "",
-                                        };
-                                        break;
-                                    case "2":
-                                        word = {
-                                            name: textSelection,
-                                            meaning:
-                                                wordDefinitionByCommunity[0] ??
-                                                "",
-                                            contexts: [],
-                                            imageURL: "",
-                                        };
-                                        break;
-                                    case "3":
-                                        word = {
-                                            name: textSelection,
-                                            meaning:
-                                                wordDefinitionByDictionary[0] ??
-                                                "",
-                                            contexts: [],
-                                            imageURL: "",
-                                        };
-                                        break;
-                                    default:
-                                        word = {
-                                            name: textSelection,
-                                            meaning:
-                                                wordDefinitionByBingTranslate ??
-                                                "",
-                                            contexts: [],
-                                        };
-                                        break;
+                    {userId && wordSetSave?.wordSetName !== "" && (
+                        <TouchableOpacity
+                            style={{
+                                padding: "8px",
+                                borderRadius: "8px",
+                            }}
+                            onPress={async () => {
+                                if (!saveWord) {
+                                    let word: WordType;
+                                    switch (activeTab) {
+                                        case "1":
+                                            word = {
+                                                name: textSelection,
+                                                meaning:
+                                                    wordDefinitionByBingTranslate ??
+                                                    "",
+                                                contexts: [],
+                                                imageURL: "",
+                                            };
+                                            break;
+                                        case "2":
+                                            word = {
+                                                name: textSelection,
+                                                meaning:
+                                                    wordDefinitionByCommunity[0] ??
+                                                    "",
+                                                contexts: [],
+                                                imageURL: "",
+                                            };
+                                            break;
+                                        case "3":
+                                            word = {
+                                                name: textSelection,
+                                                meaning:
+                                                    wordDefinitionByDictionary[0] ??
+                                                    "",
+                                                contexts: [],
+                                                imageURL: "",
+                                            };
+                                            break;
+                                        default:
+                                            word = {
+                                                name: textSelection,
+                                                meaning:
+                                                    wordDefinitionByBingTranslate ??
+                                                    "",
+                                                contexts: [],
+                                            };
+                                            break;
+                                    }
+                                    if (!settingsData?.wordSetSave) return null;
+                                    await addWord(
+                                        settingsData?.wordSetSave,
+                                        word
+                                    );
+                                } else {
+                                    if (!settingsData?.wordSetSave) return null;
+                                    await removeWord(
+                                        `${settingsData?.wordSetSave}_${textSelection}`
+                                    );
                                 }
-                                if (!settingsData?.wordSetSave) return null;
-                                await addWord(settingsData?.wordSetSave, word);
-                            } else {
-                                await removeWord(
-                                    `${settingsData?.wordSetSave}_${textSelection}`
-                                );
-                            }
-                            setSaveWord(!saveWord);
-                        }}
-                    >
-                        <UseAnimations
-                            animation={star}
-                            size={24}
-                            strokeColor="#000"
-                            style={{ margin: "auto" }}
-                        />
-                    </TouchableOpacity>
+                                setSaveWord(!saveWord);
+                            }}
+                        >
+                            <UseAnimations
+                                animation={star}
+                                size={24}
+                                strokeColor="#000"
+                                style={{ margin: "auto" }}
+                            />
+                        </TouchableOpacity>
+                    )}
                     <TouchableOpacity
                         style={{
                             padding: "8px",
@@ -423,6 +437,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                     flexDirection: "column",
                     alignItems: "flex-start",
                     textAlign: "left",
+                    width: "100%",
                 }}
             >
                 <Tabs
@@ -433,6 +448,7 @@ function TranslatePopup(props: TranslatePopupProps) {
                     style={{
                         minWidth: 320,
                         maxWidth: 500,
+                        width: "100%",
                     }}
                 />
             </div>

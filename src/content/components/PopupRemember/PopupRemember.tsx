@@ -165,12 +165,15 @@ function PopupRemember(props: PopupRememberProps) {
                             fontSize: 16,
                             fontWeight: 400,
                             opacity: 0,
+                            wordWrap: "break-word",
+                            whiteSpace: "pre-line",
+                            overflowY: "auto",
                         }}
                         animate={{
                             opacity: 1,
                         }}
                     >
-                        {definition}
+                        {definition.replace(/\\n/g, "\n")}
                     </motion.p>
                 </motion.div>
                 <motion.p

@@ -11,7 +11,12 @@ popupRoot.id = "popupRoot";
 document.body.appendChild(popupRoot);
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === "REMEMBER") {
+    if (request.type === "HIGHLIGHT") {
+        const words = request.words;
+        // highlight all the words
+
+        findWord(document.body, words);
+    } else if (request.type === "REMEMBER") {
         // Render the RememberInject component
         if (document.getElementById("rememberRoot")) {
             document.getElementById("rememberRoot")?.remove();
@@ -53,12 +58,27 @@ popup.render(
 
 // funtions --------------------------------------------------------------------------------------------------------------
 
-// const bodyText = document.querySelector("body")?.innerHTML;
-// const key = "DESIGN";
-// const newBodyText = bodyText?.replace(
-//     new RegExp(key, "g"),
-//     `<span style="background-color: yellow">${key}</span>`
-// );
-// document.querySelector("body")!.innerHTML = newBodyText!;
+function findWord(elem: HTMLElement, words: string[]) {
+    if (elem.nodeType === 3) {
+        let text = elem.nodeValue?.trim().toLowerCase();
+        if (!text) return;
+        let replaced = text;
+        words.forEach((word) => {
+            replaced = replaced.replace(
+                new RegExp(`\\b${word}\\b`, "gi"),
+                `<span style="background-color: yellow; color: black;">${word}</span>`
+            );
+        });
+        if (replaced !== text) {
+            const span = document.createElement("span");
+            span.innerHTML = replaced;
+            elem.parentNode?.replaceChild(span, elem);
+        }
+    }
+
+    elem.childNodes.forEach(function (a) {
+        findWord(a as HTMLElement, words);
+    });
+}
 
 export {};

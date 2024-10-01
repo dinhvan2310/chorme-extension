@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "My Extension",
+    "name": "Vocab Notebook",
     "version": "1.0.0",
-    "description": "A simple Chrome extension with React.",
+    "description": "A simple extension to help you learn vocabulary",
     "icons": {
         "16": "icon.png",
         "48": "icon.png",
@@ -45,6 +45,10 @@
         "openRemindWord": {
             "suggested_key": "Alt+Shift+D",
             "description": "Open remind word"
+        },
+        "highlightWord": {
+            "suggested_key": "Alt+Shift+H",
+            "description": "Highlight word"
         }
     }
 }

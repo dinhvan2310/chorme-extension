@@ -215,7 +215,7 @@ function PopupComponent() {
                                                 color: "#666",
                                             }}
                                         >
-                                            (Ctrl + Shift + R)
+                                            (Ctrl + Shift + D)
                                         </Typography.Text>
                                     </div>
                                 }

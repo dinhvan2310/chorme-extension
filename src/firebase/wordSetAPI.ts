@@ -1,6 +1,4 @@
 import {
-    arrayRemove,
-    arrayUnion,
     collection,
     doc,
     DocumentReference,
@@ -8,7 +6,6 @@ import {
     getDocs,
     orderBy,
     query,
-    updateDoc,
     where
 } from 'firebase/firestore';
 import FolderType from '../types/FolderType';
@@ -23,7 +20,7 @@ export const getWordSet = async (wordSetId: string) => {
 
 
     const wordSetDoc = await getDoc(doc(db, 'wordSets', wordSetId));
-    if (!wordSetDoc.exists()) throw new Error('WordSet is not found');
+    if (!wordSetDoc.exists()) return null;
 
     const folderDoc = await getDoc(wordSetDoc.data().folderRef);
     if (!folderDoc.exists()) throw new Error('Folder is not found');
@@ -97,15 +94,12 @@ export const getTreeStructure = async () => {
             children: await Promise.all(folder.wordSets.map(async(wordSet) => {
                 const wordSetData = await getWordSet(wordSet.id);
                 return {
-                    title: wordSetData.name,
-                    value: wordSetData.wordsetId
+                    title: wordSetData?.name,
+                    value: wordSetData?.wordsetId
                 }
             }))
         }
     }))
 
-    console.log(rs);
-
     return rs
-    
 }

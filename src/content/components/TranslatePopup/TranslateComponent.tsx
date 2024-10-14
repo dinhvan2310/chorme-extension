@@ -4,11 +4,11 @@ import UseAnimations from "react-useanimations";
 import TouchableOpacity from "../../../components/TouchableOpacity/TouchableOpacity";
 // EVERY ANIMATION NEEDS TO BE IMPORTED FIRST -> YOUR BUNDLE WILL INCLUDE ONLY WHAT IT NEEDS
 import loading2 from "react-useanimations/lib/loading2";
-import settings2 from "react-useanimations/lib/settings2";
 import star from "react-useanimations/lib/star";
 
 import { Tabs, Tooltip, Typography } from "antd";
 import { translateText } from "../../../apis/bingTranslateApi/bingTranslate";
+import { getPhonetic } from "../../../apis/dictionaryFree";
 import { getSettings, SettingsType } from "../../../apis/settings/settings";
 import { suggestDefinition } from "../../../firebase/suggestAPI";
 import {
@@ -32,6 +32,7 @@ function TranslatePopup(props: TranslatePopupProps) {
     const [userId, setUserId] = useState<string>();
 
     const [saveWord, setSaveWord] = useState(false);
+    const [phonetic, setPhonetic] = useState<string>();
     const [settingsData, setSettingsData] = useState<SettingsType>();
 
     const [activeTab, setActiveTab] = React.useState("1");
@@ -93,7 +94,8 @@ function TranslatePopup(props: TranslatePopupProps) {
             const dictionary = await suggestDefinition(
                 textSelection,
                 "",
-                "dictionary"
+                "dictionary",
+                3
             );
             const translatedText = await translateText(
                 textSelection,
@@ -109,6 +111,9 @@ function TranslatePopup(props: TranslatePopupProps) {
             setWordDefinitionByBingTranslate(translatedText);
             setWordDefinitionByCommunity(community);
             setIsLoading(false);
+
+            const _phonetic = await getPhonetic(textSelection);
+            setPhonetic(_phonetic);
         };
         fetchData();
     }, [textSelection]);
@@ -142,22 +147,15 @@ function TranslatePopup(props: TranslatePopupProps) {
             label: "",
             icon: (
                 <Tooltip title="Bing Translate">
-                    <Translate size={16} color="#000" />
+                    <Translate
+                        size={16}
+                        color={activeTab === "1" ? "#1677ff" : "#000"}
+                    />
                 </Tooltip>
             ),
             key: "1",
             children: (
                 <>
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            color: "#000",
-                            fontWeight: "500",
-                            width: "100%",
-                        }}
-                    >
-                        Meaning:
-                    </div>
                     <div
                         style={{
                             fontSize: "14px",
@@ -175,23 +173,15 @@ function TranslatePopup(props: TranslatePopupProps) {
             label: "",
             icon: (
                 <Tooltip title="Community">
-                    <People size={16} color="#000" />
+                    <People
+                        size={16}
+                        color={activeTab === "2" ? "#1677ff" : "#000"}
+                    />
                 </Tooltip>
             ),
             key: "2",
-            disabled: wordDefinitionByCommunity.length === 0,
             children: (
                 <>
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            color: "#000",
-                            fontWeight: "500",
-                            width: "100%",
-                        }}
-                    >
-                        Meaning:
-                    </div>
                     <div>
                         {wordDefinitionByCommunity.map((item, index) => (
                             <div
@@ -215,22 +205,14 @@ function TranslatePopup(props: TranslatePopupProps) {
             key: "3",
             icon: (
                 <Tooltip title="Dictionary">
-                    <Notepad2 size={16} color="#000" />
+                    <Notepad2
+                        size={16}
+                        color={activeTab === "3" ? "#1677ff" : "#000"}
+                    />
                 </Tooltip>
             ),
-            disabled: wordDefinitionByDictionary.length === 0,
             children: wordDefinitionByDictionary.length > 0 && (
                 <>
-                    <div
-                        style={{
-                            fontSize: "14px",
-                            color: "#000",
-                            fontWeight: "500",
-                            width: "100%",
-                        }}
-                    >
-                        Meaning:
-                    </div>
                     <div>
                         {wordDefinitionByDictionary.map((item, index) => (
                             <div
@@ -292,9 +274,15 @@ function TranslatePopup(props: TranslatePopupProps) {
                         }}
                         onPress={() => {
                             const synth = window.speechSynthesis;
+                            const voices = synth.getVoices();
+                            const voice = voices.find(
+                                (voice) =>
+                                    voice.lang === settingsData?.voiceAccent
+                            );
                             const utterThis = new SpeechSynthesisUtterance(
                                 textSelection
                             );
+                            utterThis.voice = voice ?? voices[0];
                             synth.speak(utterThis);
                         }}
                     >
@@ -310,6 +298,13 @@ function TranslatePopup(props: TranslatePopupProps) {
                     >
                         {textSelection.slice(0, 36) +
                             (textSelection.length > 36 ? "..." : "")}
+
+                        {phonetic && (
+                            <Typography.Text type="secondary">
+                                {" "}
+                                [{phonetic}]
+                            </Typography.Text>
+                        )}
                     </div>
                 </div>
                 <div
@@ -319,96 +314,84 @@ function TranslatePopup(props: TranslatePopupProps) {
                         alignItems: "center",
                     }}
                 >
-                    <Tooltip title="Save to word set">
-                        <Typography.Text type="secondary">
-                            {wordSetSave?.wordSetName}
-                        </Typography.Text>
-                    </Tooltip>
                     {userId && wordSetSave?.wordSetName !== "" && (
-                        <TouchableOpacity
-                            style={{
-                                padding: "8px",
-                                borderRadius: "8px",
-                            }}
-                            onPress={async () => {
-                                if (!saveWord) {
-                                    let word: WordType;
-                                    switch (activeTab) {
-                                        case "1":
-                                            word = {
-                                                name: textSelection,
-                                                meaning:
-                                                    wordDefinitionByBingTranslate ??
-                                                    "",
-                                                contexts: [],
-                                                imageURL: "",
-                                            };
-                                            break;
-                                        case "2":
-                                            word = {
-                                                name: textSelection,
-                                                meaning:
-                                                    wordDefinitionByCommunity[0] ??
-                                                    "",
-                                                contexts: [],
-                                                imageURL: "",
-                                            };
-                                            break;
-                                        case "3":
-                                            word = {
-                                                name: textSelection,
-                                                meaning:
-                                                    wordDefinitionByDictionary[0] ??
-                                                    "",
-                                                contexts: [],
-                                                imageURL: "",
-                                            };
-                                            break;
-                                        default:
-                                            word = {
-                                                name: textSelection,
-                                                meaning:
-                                                    wordDefinitionByBingTranslate ??
-                                                    "",
-                                                contexts: [],
-                                            };
-                                            break;
-                                    }
-                                    if (!settingsData?.wordSetSave) return null;
-                                    await addWord(
-                                        settingsData?.wordSetSave,
-                                        word
-                                    );
-                                } else {
-                                    if (!settingsData?.wordSetSave) return null;
-                                    await removeWord(
-                                        `${settingsData?.wordSetSave}_${textSelection}`
-                                    );
-                                }
-                                setSaveWord(!saveWord);
-                            }}
-                        >
-                            <UseAnimations
-                                animation={star}
-                                size={24}
-                                strokeColor="#000"
-                                style={{ margin: "auto" }}
-                            />
-                        </TouchableOpacity>
+                        <Tooltip title={`${wordSetSave?.wordSetName}`}>
+                            <div>
+                                <TouchableOpacity
+                                    style={{
+                                        padding: "8px",
+                                        borderRadius: "8px",
+                                    }}
+                                    onPress={async () => {
+                                        if (!saveWord) {
+                                            let word: WordType;
+                                            switch (activeTab) {
+                                                case "1":
+                                                    word = {
+                                                        name: textSelection,
+                                                        meaning:
+                                                            wordDefinitionByBingTranslate ??
+                                                            "",
+                                                        contexts: [],
+                                                        imageURL: "",
+                                                    };
+                                                    break;
+                                                case "2":
+                                                    word = {
+                                                        name: textSelection,
+                                                        meaning:
+                                                            wordDefinitionByCommunity[0] ??
+                                                            "",
+                                                        contexts: [],
+                                                        imageURL: "",
+                                                    };
+                                                    break;
+                                                case "3":
+                                                    word = {
+                                                        name: textSelection,
+                                                        meaning:
+                                                            wordDefinitionByDictionary[0] ??
+                                                            "",
+                                                        contexts: [],
+                                                        imageURL: "",
+                                                    };
+                                                    break;
+                                                default:
+                                                    word = {
+                                                        name: textSelection,
+                                                        meaning:
+                                                            wordDefinitionByBingTranslate ??
+                                                            "",
+                                                        contexts: [],
+                                                    };
+                                                    break;
+                                            }
+                                            if (!settingsData?.wordSetSave)
+                                                return null;
+                                            await addWord(
+                                                settingsData?.wordSetSave,
+                                                word
+                                            );
+                                        } else {
+                                            if (!settingsData?.wordSetSave)
+                                                return null;
+                                            await removeWord(
+                                                `${settingsData?.wordSetSave}_${textSelection}`
+                                            );
+                                        }
+                                        setSaveWord(!saveWord);
+                                    }}
+                                >
+                                    <UseAnimations
+                                        animation={star}
+                                        size={24}
+                                        strokeColor="#000"
+                                        style={{ margin: "auto" }}
+                                    />
+                                </TouchableOpacity>
+                            </div>
+                        </Tooltip>
                     )}
-                    <TouchableOpacity
-                        style={{
-                            padding: "8px",
-                            borderRadius: "8px",
-                        }}
-                    >
-                        <UseAnimations
-                            animation={settings2}
-                            size={24}
-                            strokeColor="#000"
-                            style={{ margin: "auto" }}
-                        />
-                    </TouchableOpacity>
                 </div>
             </div>
             {infoText !== "" && (

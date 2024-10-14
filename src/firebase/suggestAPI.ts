@@ -4,7 +4,7 @@ import { convertToWordType, getWordDefinition } from "../apis/dictionaryFree";
 import { MeaningGlobalType } from "../types/WordGlobalType";
 import { db } from "./firebase-config";
 
-export const suggestDefinition = async (word: string, text: string, type: 'dictionary' | 'community' | 'bingTranslate' = 'community', limit: number = 3,
+export const suggestDefinition = async (word: string, text: string, type: 'dictionary' | 'community' | 'bingTranslate' = 'community', limit: number|undefined = undefined,
     langFrom: 'detect' | 'en' | 'vi' | 'ja' | 'zh' | 'ko' | 'fr' = 'en', langTo: 'en' | 'vi' | 'ja' | 'zh' | 'ko' | 'fr' = 'vi'
 ): Promise<string[]> => {
 
@@ -15,7 +15,7 @@ export const suggestDefinition = async (word: string, text: string, type: 'dicti
         if (!definitions) {
             return []
         }
-        return convertToWordType(definitions, 3, 0).map((item) => {
+        return convertToWordType(definitions, limit, 0).map((item) => {
             return item.meaning;
         });
     }
@@ -71,7 +71,7 @@ export const suggestDefinition = async (word: string, text: string, type: 'dicti
 
 }
 
-export const suggestContext = async (word: string, text: string, exclude: string[] , limit: number = 3) => {
+export const suggestContext = async (word: string, text: string, exclude: string[] , limit: number|undefined = undefined) => {
     
     
         // gợi ý 3 từ hoàn chỉnh
@@ -86,7 +86,7 @@ export const suggestContext = async (word: string, text: string, exclude: string
             });
         }
         
-        const wordDictionary = convertToWordType(await getWordDefinition(word) ?? [], 0, -1)
+        const wordDictionary = convertToWordType(await getWordDefinition(word) ?? [], 0, undefined)
         const dictionaryContexts = wordDictionary.flatMap((item) => {
             return item.contexts;
         });
@@ -100,9 +100,7 @@ export const suggestContext = async (word: string, text: string, exclude: string
             return []
         } else {
             allContexts = allContexts.sort(() => Math.random() - 0.5);
-            if (allContexts.length <= limit || limit === -1) {
-                return allContexts;
-            }
+            
             return allContexts.slice(0, limit);
         }
 }

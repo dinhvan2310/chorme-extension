@@ -13,13 +13,23 @@
 
 export type langFromType = "detect" | "en" | "vi" | "ja" | "zh" | "ko" | "fr";
 export type langToType = "en" | "vi" | "ja" | "zh" | "ko" | "fr";
+export type voiceAccentType = "en-US" | "en-GB" | "en-AU" | "vi-VN" | "ja-JP" | "zh-CN" | "ko-KR" | "fr-FR";
 export interface SettingsType {
     langFrom: langFromType;
     langTo: langToType;
+    voiceAccent: voiceAccentType;
     wordSetSave: string;
     isAutoReminder: boolean;
     reminderInterval: number;
     isHighlight: boolean;
+
+    setLangFrom?: (lang: langFromType) => void;
+    setLangTo?: (lang: langToType) => void;
+    setVoiceAccent?: (accent: voiceAccentType) => void;
+    setWordSetSave?: (wordSet: string) => void;
+    setIsAutoReminder?: (isAuto: boolean) => void;
+    setReminderInterval?: (interval: number) => void;
+    setIsHighlight?: (isHighlight: boolean) => void;
 }
 
 const _getSettings = async (userId: string | undefined) => {
@@ -38,6 +48,7 @@ const _getSettings = async (userId: string | undefined) => {
             [uid]: {
                 langFrom: "detect",
                 langTo: "vi",
+                voiceAccent: 'en-US',
                 wordSetSave: uid === 'default' ? '' : uid,
                 isAutoReminder: true,
                 reminderInterval: 5,
@@ -47,6 +58,7 @@ const _getSettings = async (userId: string | undefined) => {
         return {
             langFrom: "detect",
             langTo: "vi",
+            voiceAccent: 'en-US',
             wordSetSave: uid === 'default' ? '' : uid,
             isAutoReminder: true,
             reminderInterval: 5,
@@ -58,8 +70,6 @@ const _getSettings = async (userId: string | undefined) => {
 
 export const getSettings = async (): Promise<SettingsType> => {
     const userId = await chrome.storage.local.get("userId");
-    console.log("userId", userId);
-    console.log("userId.userId", userId?.userId);
     const settings = await _getSettings(userId?.userId);
     return settings;
 }
@@ -73,5 +83,4 @@ export const setSettings = async (settings: SettingsType) => {
     await chrome.storage.local.set({
         [uid]: settings
     })
-    console.log(uid, settings);
 }

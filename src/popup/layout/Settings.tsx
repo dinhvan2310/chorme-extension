@@ -36,10 +36,8 @@ function Settings() {
                             value={settingsData?.langFrom}
                             onChange={(value) => {
                                 if (!settingsData) return;
-                                setSettings({
-                                    ...settingsData,
-                                    langFrom: value,
-                                });
+                                if (settingsData.setLangFrom)
+                                    settingsData.setLangFrom(value);
                             }}
                             options={[
                                 { label: "Auto Detect", value: "detect" },
@@ -58,10 +56,8 @@ function Settings() {
                             value={settingsData?.langTo}
                             onChange={(value) => {
                                 if (!settingsData) return;
-                                setSettings({
-                                    ...settingsData,
-                                    langTo: value,
-                                });
+                                if (settingsData.setLangTo)
+                                    settingsData.setLangTo(value);
                             }}
                             options={[
                                 { label: "English", value: "en" },
@@ -73,6 +69,27 @@ function Settings() {
                             ]}
                         />
                     </Form.Item>
+                    <Form.Item label="Voice accent" name="voiceAccent">
+                        <Select
+                            defaultValue={settingsData?.voiceAccent}
+                            value={settingsData?.voiceAccent}
+                            onChange={(value) => {
+                                if (!settingsData) return;
+                                if (settingsData.setVoiceAccent)
+                                    settingsData.setVoiceAccent(value);
+                            }}
+                            options={[
+                                { label: "US English", value: "en-US" },
+                                { label: "UK English", value: "en-GB" },
+                                { label: "AU English", value: "en-AU" },
+                                { label: "Vietnamese", value: "vi-VN" },
+                                { label: "Japanese", value: "ja-JP" },
+                                { label: "Chinese", value: "zh-CN" },
+                                { label: "Korean", value: "ko-KR" },
+                                { label: "French", value: "fr-FR" },
+                            ]}
+                        />
+                    </Form.Item>
                     <Form.Item label="Word set save" name="wordSetSave">
                         <TreeSelect
                             value={settingsData?.wordSetSave}
@@ -80,10 +97,8 @@ function Settings() {
                             treeData={treeStructure}
                             onChange={(value) => {
                                 if (!settingsData) return;
-                                setSettings({
-                                    ...settingsData,
-                                    wordSetSave: value,
-                                });
+                                if (settingsData.setWordSetSave)
+                                    settingsData.setWordSetSave(value);
                             }}
                         />
                     </Form.Item>
@@ -104,10 +119,8 @@ function Settings() {
                             value={settingsData?.isAutoReminder}
                             onChange={(value) => {
                                 if (!settingsData) return;
-                                setSettings({
-                                    ...settingsData,
-                                    isAutoReminder: value,
-                                });
+                                if (settingsData.setIsAutoReminder)
+                                    settingsData.setIsAutoReminder(value);
                             }}
                         />
                     </Form.Item>
@@ -122,10 +135,8 @@ function Settings() {
                             onChange={(value) => {
                                 if (typeof value === "number") {
                                     if (!settingsData) return;
-                                    setSettings({
-                                        ...settingsData,
-                                        reminderInterval: value,
-                                    });
+                                    if (settingsData.setReminderInterval)
+                                        settingsData.setReminderInterval(value);
                                 }
                             }}
                         />
@@ -144,10 +155,8 @@ function Settings() {
                             value={settingsData?.isHighlight}
                             onChange={(value) => {
                                 if (!settingsData) return;
-                                setSettings({
-                                    ...settingsData,
-                                    isHighlight: value,
-                                });
+                                if (settingsData.setIsHighlight)
+                                    settingsData.setIsHighlight(value);
                             }}
                         />
                     </Form.Item>

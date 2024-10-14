@@ -8,15 +8,21 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TextareaAutosize from "react-textarea-autosize";
+import star from "react-useanimations/lib/star";
 
 import { Tabs, Tooltip } from "antd";
 import React from "react";
+import UseAnimations from "react-useanimations";
 import { translateText } from "../../apis/bingTranslateApi/bingTranslate";
+import { getSettings } from "../../apis/settings/settings";
 import TouchableOpacity from "../../components/TouchableOpacity/TouchableOpacity";
 import { AuthContext } from "../../context/AuthProvider";
 import { SettingsContext } from "../../context/SettingsContext";
 import { suggestContext, suggestDefinition } from "../../firebase/suggestAPI";
+import { addWord, removeWord } from "../../firebase/wordAPI";
+import { getWordSet } from "../../firebase/wordSetAPI";
 import useDebounce from "../../hooks/useDebounce";
+import { WordType } from "../../types/WordType";
 
 function PopupTranslate() {
     const navigate = useNavigate();
@@ -35,6 +41,13 @@ function PopupTranslate() {
     const [wordDefinitionByBingTranslate, setWordDefinitionByBingTranslate] =
         React.useState<string>();
     const [wordContexts, setWordContexts] = React.useState<string[]>([]);
+    const [wordSetSave, setWordSetSave] = useState<{
+        wordSetId: string;
+        wordSetName: string;
+    }>();
+
+    const [saveWord, setSaveWord] = useState(false);
+    const [activeTab, setActiveTab] = React.useState("1");
 
     const { user, signOut } = context;
 
@@ -56,12 +69,23 @@ function PopupTranslate() {
                 "",
                 "community"
             );
-            const wordContexts = await suggestContext(
-                searchDebounce,
-                "",
-                [""],
-                -1
-            );
+            const wordContexts = await suggestContext(searchDebounce, "", [""]);
+
+            const settings = await getSettings();
+            console.log("settings", settings);
+            if (settings.wordSetSave === "") {
+                setWordSetSave({
+                    wordSetId: "",
+                    wordSetName: "",
+                });
+            } else {
+                setWordSetSave({
+                    wordSetId: settings.wordSetSave,
+                    wordSetName:
+                        (await getWordSet(settings.wordSetSave))?.name ?? "",
+                });
+            }
+
             setWordDefinitionByDictionary(dictionary);
             setWordDefinitionByBingTranslate(translatedText);
             setWordDefinitionByCommunity(community);
@@ -341,23 +365,114 @@ function PopupTranslate() {
                             backgroundColor: "#fff",
                         }}
                     >
-                        <TouchableOpacity
+                        <div
                             style={{
-                                width: "fit-content",
-                                height: "fit-content",
-                                cursor: "pointer",
-                                marginBottom: 8,
-                            }}
-                            onPress={() => {
-                                const synth = window.speechSynthesis;
-                                const utterThis = new SpeechSynthesisUtterance(
-                                    search
-                                );
-                                synth.speak(utterThis);
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
                             }}
                         >
-                            <VolumeHigh size={16} color="#333" />
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                style={{
+                                    width: "fit-content",
+                                    height: "fit-content",
+                                    cursor: "pointer",
+                                    marginBottom: 8,
+                                }}
+                                onPress={() => {
+                                    console.log(settingsData?.voiceAccent);
+                                    const synth = window.speechSynthesis;
+                                    const voices = synth.getVoices();
+                                    const voice = voices.find(
+                                        (voice) =>
+                                            voice.lang ===
+                                            settingsData?.voiceAccent
+                                    );
+                                    const utterThis =
+                                        new SpeechSynthesisUtterance(search);
+                                    utterThis.voice = voice ?? voices[0];
+                                    synth.speak(utterThis);
+                                }}
+                            >
+                                <VolumeHigh size={16} color="#333" />
+                            </TouchableOpacity>
+                            <Tooltip title={`${wordSetSave?.wordSetName}`}>
+                                <div>
+                                    <TouchableOpacity
+                                        style={{}}
+                                        onPress={async () => {
+                                            if (!saveWord) {
+                                                let word: WordType;
+                                                switch (activeTab) {
+                                                    case "1":
+                                                        word = {
+                                                            name: search,
+                                                            meaning:
+                                                                wordDefinitionByBingTranslate ??
+                                                                "",
+                                                            contexts: [],
+                                                            imageURL: "",
+                                                        };
+                                                        break;
+                                                    case "2":
+                                                        word = {
+                                                            name: search,
+                                                            meaning:
+                                                                wordDefinitionByCommunity[0] ??
+                                                                "",
+                                                            contexts: [],
+                                                            imageURL: "",
+                                                        };
+                                                        break;
+                                                    case "3":
+                                                        word = {
+                                                            name: search,
+                                                            meaning:
+                                                                wordDefinitionByDictionary[0] ??
+                                                                "",
+                                                            contexts: [],
+                                                            imageURL: "",
+                                                        };
+                                                        break;
+                                                    default:
+                                                        word = {
+                                                            name: search,
+                                                            meaning:
+                                                                wordDefinitionByBingTranslate ??
+                                                                "",
+                                                            contexts: [],
+                                                        };
+                                                        break;
+                                                }
+                                                if (!settingsData?.wordSetSave)
+                                                    return null;
+                                                await addWord(
+                                                    settingsData?.wordSetSave,
+                                                    word
+                                                );
+                                            } else {
+                                                if (!settingsData?.wordSetSave)
+                                                    return null;
+                                                await removeWord(
+                                                    `${settingsData?.wordSetSave}_${search}`
+                                                );
+                                            }
+                                            setSaveWord(!saveWord);
+                                        }}
+                                    >
+                                        <UseAnimations
+                                            animation={star}
+                                            size={20}
+                                            strokeColor="#000"
+                                            style={{
+                                                marginBottom: 8,
+                                            }}
+                                        />
+                                    </TouchableOpacity>
+                                </div>
+                            </Tooltip>
+                        </div>
                         <TextareaAutosize
                             value={search}
                             onChange={(e) => {
@@ -424,8 +539,14 @@ function PopupTranslate() {
                                 {wordContexts.length > 0 && (
                                     <div>
                                         {wordContexts.map((context, index) => (
-                                            <div key={index}>
-                                                {index + 1}. {context}
+                                            <div
+                                                key={index}
+                                                style={{
+                                                    whiteSpace: "pre-line",
+                                                }}
+                                            >
+                                                {index + 1}.{" "}
+                                                {context.replace(/\\n/g, "\n")}
                                             </div>
                                         ))}
                                     </div>

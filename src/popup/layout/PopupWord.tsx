@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button, List, Typography } from "antd";
-import { ArrowLeft2, Edit2, Notepad, Star, Star1 } from "iconsax-react";
+import { ArrowLeft2, Edit2, Notepad, Star1, VolumeHigh } from "iconsax-react";
 import { useContext } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import SpaceComponent from "../../components/Space/SpaceComponent";
@@ -9,6 +9,7 @@ import { AuthContext } from "../../context/AuthProvider";
 import { getWords, updateWord } from "../../firebase/wordAPI";
 import { WordSetType } from "../../types/WordSetType";
 import { WordType } from "../../types/WordType";
+import { SettingsContext } from "../../context/SettingsContext";
 
 function PopupWord() {
     const navigate = useNavigate();
@@ -17,6 +18,7 @@ function PopupWord() {
     const { folderid, wordsetid } = useParams();
     const location = useLocation();
     const wordSet = location.state.wordSet as WordSetType;
+    const settingsData = useContext(SettingsContext);
 
     const fetchWords = async () => {
         if (!wordsetid) return null;
@@ -193,7 +195,40 @@ function PopupWord() {
                                             >
                                                 {item.name}
                                             </Typography.Text>
-                                            <div>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <TouchableOpacity
+                                                    style={{}}
+                                                    onPress={() => {
+                                                        const synth =
+                                                            window.speechSynthesis;
+                                                        const voices =
+                                                            synth.getVoices();
+                                                        const voice =
+                                                            voices.find(
+                                                                (voice) =>
+                                                                    voice.lang ===
+                                                                    settingsData?.voiceAccent
+                                                            );
+                                                        const utterThis =
+                                                            new SpeechSynthesisUtterance(
+                                                                item.name
+                                                            );
+                                                        utterThis.voice =
+                                                            voice ?? voices[0];
+                                                        synth.speak(utterThis);
+                                                    }}
+                                                >
+                                                    <VolumeHigh
+                                                        size="20"
+                                                        style={{}}
+                                                    />
+                                                </TouchableOpacity>
+                                                <SpaceComponent width={8} />
                                                 <TouchableOpacity
                                                     onPress={async () => {
                                                         if (!item.wordId)
@@ -293,9 +328,17 @@ function PopupWord() {
                                                                     }}
                                                                 />
                                                             </div>
-                                                            <Typography.Text>
+                                                            <Typography.Text
+                                                                style={{
+                                                                    whiteSpace:
+                                                                        "pre-wrap",
+                                                                }}
+                                                            >
                                                                 {" "}
-                                                                {context}
+                                                                {context.replace(
+                                                                    /\\n/g,
+                                                                    "\n"
+                                                                )}
                                                             </Typography.Text>
                                                         </div>
                                                     )

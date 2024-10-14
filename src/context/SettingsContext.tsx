@@ -3,7 +3,9 @@ import {
     getSettings,
     langFromType,
     langToType,
+    setSettings,
     SettingsType,
+    voiceAccentType,
 } from "../apis/settings/settings";
 
 export const SettingsContext = createContext<SettingsType | null>(null);
@@ -18,6 +20,8 @@ const SettingsProvider = (props: SettingsProviderProps) => {
     const [langFrom, setLangFrom] = useState<langFromType>("detect");
     const [langTo, setLangTo] = useState<langToType>("vi");
 
+    const [voiceAccent, setVoiceAccent] = useState<voiceAccentType>("en-US");
+
     const [wordSetSave, setWordSetSave] = useState<string>("");
 
     const [isAutoReminder, setIsAutoReminder] = useState<boolean>(false);
@@ -29,6 +33,7 @@ const SettingsProvider = (props: SettingsProviderProps) => {
         const settings = await getSettings();
         setLangFrom(settings.langFrom);
         setLangTo(settings.langTo);
+        setVoiceAccent(settings.voiceAccent);
         setWordSetSave(settings.wordSetSave);
         setIsAutoReminder(settings.isAutoReminder);
         setReminderInterval(settings.reminderInterval);
@@ -39,36 +44,99 @@ const SettingsProvider = (props: SettingsProviderProps) => {
         fetchData();
     }, []);
 
-    chrome.storage.onChanged.addListener((changes, namespace) => {
-        if (namespace === "local") {
-            if (changes.langFrom) {
-                setLangFrom(changes.langFrom.newValue);
-            }
-            if (changes.langTo) {
-                setLangTo(changes.langTo.newValue);
-            }
-            if (changes.wordSetSave) {
-                setWordSetSave(changes.wordSetSave.newValue);
-            }
-            if (changes.isAutoReminder) {
-                setIsAutoReminder(changes.isAutoReminder.newValue);
-            }
-            if (changes.reminderInterval) {
-                setReminderInterval(changes.reminderInterval.newValue);
-            }
-            if (changes.isHighlight) {
-                setIsHighlight(changes.isHighlight.newValue);
-            }
-        }
-    });
-
     const value = {
         langFrom,
         langTo,
+        voiceAccent,
         wordSetSave,
         isAutoReminder,
         reminderInterval,
         isHighlight,
+
+        setLangFrom: (lang: langFromType) => {
+            setSettings({
+                langFrom: lang,
+                langTo,
+                voiceAccent,
+                wordSetSave,
+                isAutoReminder,
+                reminderInterval,
+                isHighlight,
+            });
+            setLangFrom(lang);
+        },
+        setLangTo: (lang: langToType) => {
+            setSettings({
+                langFrom,
+                langTo: lang,
+                voiceAccent,
+                wordSetSave,
+                isAutoReminder,
+                reminderInterval,
+                isHighlight,
+            });
+            setLangTo(lang);
+        },
+        setVoiceAccent: (accent: voiceAccentType) => {
+            setSettings({
+                langFrom,
+                langTo,
+                voiceAccent: accent,
+                wordSetSave,
+                isAutoReminder,
+                reminderInterval,
+                isHighlight,
+            });
+            setVoiceAccent(accent);
+        },
+        setWordSetSave: (wordSet: string) => {
+            setSettings({
+                langFrom,
+                langTo,
+                voiceAccent,
+                wordSetSave: wordSet,
+                isAutoReminder,
+                reminderInterval,
+                isHighlight,
+            });
+            setWordSetSave(wordSet);
+        },
+        setIsAutoReminder: (isAuto: boolean) => {
+            setSettings({
+                langFrom,
+                langTo,
+                voiceAccent,
+                wordSetSave,
+                isAutoReminder: isAuto,
+                reminderInterval,
+                isHighlight,
+            });
+            setIsAutoReminder(isAuto);
+        },
+        setReminderInterval: (interval: number) => {
+            setSettings({
+                langFrom,
+                langTo,
+                voiceAccent,
+                wordSetSave,
+                isAutoReminder,
+                reminderInterval: interval,
+                isHighlight,
+            });
+            setReminderInterval(interval);
+        },
+        setIsHighlight: (isHighlight: boolean) => {
+            setSettings({
+                langFrom,
+                langTo,
+                voiceAccent,
+                wordSetSave,
+                isAutoReminder,
+                reminderInterval,
+                isHighlight: isHighlight,
+            });
+            setIsHighlight(isHighlight);
+        },
     };
 
     return (

@@ -12,6 +12,8 @@ chrome.runtime.onInstalled.addListener(() => {
     })
 })
 
+
+
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // const uid = await chrome.storage.local.get('userId')
     if (changeInfo.url) {
@@ -44,12 +46,11 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                 })
                 .then(() => {
                     getWordNotLearned().then((item) => {
-                        console.log("item", item);
                         wordNotLearned = item;
+                        console.log("wordNotLearned", wordNotLearned);
                         chrome.storage.local.set({ wordNotLearned });
                     })
                     
-                    console.log("Script executed");
                 })
                 .catch((err) => {
                     console.log("Script failed to execute", err);
@@ -65,42 +66,58 @@ const main = async () => {
     chrome.storage.local.set({ wordNotLearned });
     console.log("wordNotLearned", wordNotLearned);
 
-    let settings = await getSettings();
 
-    chrome.storage.local.onChanged.addListener(
-        (changes: { [key: string]: chrome.storage.StorageChange }) => {
-            if (changes.isAutoReminder) {
-                settings.isAutoReminder = changes.isAutoReminder.newValue;
-            }
-            if (changes.reminderInterval) {
-                settings.reminderInterval = changes.reminderInterval.newValue;
-            }
-            if (changes.langFrom) {
-                settings.langFrom = changes.langFrom.newValue;
-            }
-            if (changes.langTo) {
-                settings.langTo = changes.langTo.newValue;
-            }
-            if (changes.wordSetSave) {
-                settings.wordSetSave = changes.wordSetSave.newValue;
-            }
-            if (changes.isHighlight) {
-                settings.isHighlight = changes.isHighlight.newValue;
-            }
+    // chrome.storage.local.onChanged.addListener(
+    //     (changes: { [key: string]: chrome.storage.StorageChange }) => {
+    //         if (changes.isAutoReminder) {
+    //             settings.isAutoReminder = changes.isAutoReminder.newValue;
+    //         }
+    //         if (changes.reminderInterval) {
+    //             settings.reminderInterval = changes.reminderInterval.newValue;
+    //         }
+    //         if (changes.langFrom) {
+    //             settings.langFrom = changes.langFrom.newValue;
+    //         }
+    //         if (changes.langTo) {
+    //             settings.langTo = changes.langTo.newValue;
+    //         }
+    //         if (changes.voiceAccent) {
+    //             settings.voiceAccent = changes.voiceAccent.newValue;
+    //         }
+    //         if (changes.wordSetSave) {
+    //             settings.wordSetSave = changes.wordSetSave.newValue;
+    //         }
+    //         if (changes.isHighlight) {
+    //             settings.isHighlight = changes.isHighlight.newValue;
+    //         }
 
-            if (changes.wordNotLearned) {
-                wordNotLearned = changes.wordNotLearned.newValue;
-            }
-        }
-    );
+    //         if (changes.wordNotLearned) {
+    //             wordNotLearned = changes.wordNotLearned.newValue;
+    //         }
+    //     }
+    // );
 
     const interval = async () => {
-        console.log("interval");
-        if (settings.isAutoReminder === false) {
-            console.log("isAutoReminder === false");
-            return;
-        }
+        try {
+            console.log("interval");
+        let settings = await getSettings();
+        // if (!settings.isAutoReminder) {
+        //     console.log("isAutoReminder === false");
+        //     setTimeout(interval, settings.reminderInterval * 60 * 1000);
+        //     return;
+        // }
         setTimeout(async () => {
+            if (!settings.isAutoReminder) {
+                console.log("isAutoReminder === false");
+                interval();
+                return;
+            }
+
+            if (wordNotLearned.length === 0) {
+                console.log("wordNotLearned.length === 0");
+                return;
+            }
+
             const word =
                 wordNotLearned[
                     Math.floor(Math.random() * wordNotLearned.length)
@@ -118,12 +135,16 @@ const main = async () => {
                 });
             });
 
-            await interval();
+            interval();
         }, settings.reminderInterval * 60 * 1000);
+        } catch {
+            console.log("error");
+            interval();
+        }
     };
     interval();
 
-    chrome.commands.onCommand.addListener((command) => {
+    chrome.commands.onCommand.addListener(async(command) => {
         if (command === "openRemindWord") {
             if (wordNotLearned.length === 0) {
                 console.log("wordNotLearned.length === 0");
@@ -145,6 +166,7 @@ const main = async () => {
                     });
             });
         } else if (command === "highlightWord") {
+            let settings = await getSettings();
             if (settings.isHighlight) {
                 getWordFromUser().then((words) => {
                     chrome.tabs.query(

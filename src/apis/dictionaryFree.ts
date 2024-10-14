@@ -37,8 +37,8 @@ interface WordEntry {
 
 export function convertToWordType(
     input: WordEntry[],
-    definitionLimit: number = 1,
-    contextLimit: number = 3
+    definitionLimit: number|undefined = undefined,
+    contextLimit: number|undefined = undefined
 ): WordType[] {
     return input.map((item) => {
         const word: WordType = {
@@ -53,11 +53,11 @@ export function convertToWordType(
                 const partOfSpeech = meaning.partOfSpeech;
                 const definitions = meaning.definitions
                     .slice(0, definitionLimit)
-                    .map((def) => `• ${def.definition}`)
+                    .map((def) => `• ${def.definition}${def.example ? `\n-> ${def.example}` : ""}`)
                     .join("\n");
                 return `${index+ 1}.\u00A0${partOfSpeech}\n${definitions}`;
             })
-            .join("\n");
+            .join("\n\n");
 
         // Extract examples as contexts, limited by contextLimit
         word.contexts = item.meanings
@@ -84,12 +84,21 @@ export const getWordDefinition = async (word: string) => {
             `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
         );
         const data = (await response.json());
+        console.log(data);
 
         if (!Array.isArray(data)) {
             return null;
         }
-        return data as WordEntry[];
+        return data;
     } catch {
         return null;
     }
 };
+
+export const getPhonetic = async (word: string) => {
+    const wordDefinition = await getWordDefinition(word);
+    if (!wordDefinition) {
+        return '';
+    }
+    return wordDefinition[0].phonetics[0].text;
+}
